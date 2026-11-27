@@ -171,7 +171,7 @@ function hitNPC(kick=false){
  if(currentCar||dead||attackCooldown>0||playerAction==='dodge')return;
  const target=npcs.filter(n=>n.rig.mesh.position.distanceTo(player.position)<2.25).sort((a,b)=>a.rig.mesh.position.distanceTo(player.position)-b.rig.mesh.position.distanceTo(player.position))[0];
  startAction(kick?'kick':'punch',kick?.72:.48);attackCooldown=kick?1.0:.62;
- if(target){target.hostile=true;target.hp-=kick?48:30;target.stun=.85;const away=target.rig.mesh.position.clone().sub(player.position).normalize();target.rig.mesh.position.addScaledVector(away,kick?2.5:1.5);wanted=Math.min(5,wanted+1);if(target.hp<=0){target.hp=100;target.rig.mesh.position.copy(target.origin);money+=25}updateUI()}
+ if(target){target.hostile=true;target.hp-=kick?48:30;target.stun=.85;const away=target.rig.mesh.position.clone().sub(player.position).normalize();target.rig.mesh.position.addScaledVector(away,kick?2.5:1.5);wanted=Math.min(5,wanted+1);if(target.hp<=0){target.hp=100;target.hostile=false;target.rig.mesh.position.copy(target.origin);money+=25}updateUI()}
 }
 function dodge(){if(dodgeCooldown>0||currentCar)return;startAction('dodge',.55);dodgeCooldown=1.25;const side=keys.KeyA?-1:1;player.position.x+=Math.cos(yaw)*side*2.3;player.position.z-=Math.sin(yaw)*side*2.3}
 function animateRig(rig,action,t,moveAmount=0){

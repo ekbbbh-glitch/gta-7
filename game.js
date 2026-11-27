@@ -253,7 +253,7 @@ let currentCar=null,health=100,money=2500,wanted=0,story=false,missionStep=0,dea
 let wantedTimer=0,insideBuilding=null,garageCar=null,cameraMode='third';
 let playerAction='idle',actionTimer=0,attackCooldown=0,dodgeCooldown=0,guarding=false,jumpVelocity=0;
 const keys={};let yaw=0,pitch=.18,clock=new THREE.Clock(),toastTimer;
-const tideClock=new THREE.Clock();
+
 function toast(s){const el=document.querySelector('#toast');el.textContent=s;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1500)}
 function updateUI(){
  document.querySelector('#health').textContent=health;document.querySelector('#money').textContent=money;
@@ -369,7 +369,7 @@ function movePlayer(dt){
  if(keys.KeyW||keys.ArrowUp)dir.add(forward);if(keys.KeyS||keys.ArrowDown)dir.sub(forward);
  if(keys.KeyD||keys.ArrowRight)dir.add(right);if(keys.KeyA||keys.ArrowLeft)dir.sub(right);
  if(dir.lengthSq())dir.normalize();
- if(currentJetSki){if(dir.lengthSq()){currentJetSki.mesh.position.addScaledVector(dir,dt*13);currentJetSki.mesh.rotation.y=Math.atan2(-dir.z,dir.x)}currentJetSki.mesh.position.y=.22+Math.sin(tideClock.elapsedTime*1.5+currentJetSki.mesh.position.x*.08)*.12;player.position.copy(currentJetSki.mesh.position);player.position.y+=.15;
+ if(currentJetSki){if(dir.lengthSq()){currentJetSki.mesh.position.addScaledVector(dir,dt*13);currentJetSki.mesh.rotation.y=Math.atan2(-dir.z,dir.x)}currentJetSki.mesh.position.y=.22+Math.sin(clock.elapsedTime*1.5+currentJetSki.mesh.position.x*.08)*.12;player.position.copy(currentJetSki.mesh.position);player.position.y+=.15;
  }else if(currentCar){
   currentCar.hitCooldown=Math.max(0,currentCar.hitCooldown-dt);
   if(dir.lengthSq()&&currentCar.fuel>0){currentCar.mesh.position.addScaledVector(dir,speed*2.0*dt);currentCar.mesh.rotation.y=Math.atan2(-dir.z,dir.x);currentCar.fuel=Math.max(0,currentCar.fuel-dt*(running?0.09:0.055));currentCar.outOfFuelNotified=false}
@@ -445,7 +445,7 @@ function animate(){
  if(actionTimer>0){actionTimer-=dt;if(actionTimer<=0)playerAction='idle'}
  if(health<=0&&!dead){dead=true;const d=document.createElement('div');d.id='death-screen';d.style.cssText='position:fixed;inset:0;z-index:30;background:#05080dcc;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font:900 38px Arial;letter-spacing:4px;text-align:center';d.innerHTML='<div>ÖLDÜN</div><div style="font:600 15px Arial;letter-spacing:1px;margin-top:18px">R tuşuna basarak hastanede yeniden doğ</div>';document.body.appendChild(d)}
  if(wanted>0&&wantedTimer>0){wantedTimer-=dt;if(wantedTimer<=0){wanted=Math.max(0,wanted-1);wantedTimer=wanted?18:0;updateUI()}}
- updateWaterWaves(tideClock.elapsedTime);movePlayer(dt);updateNPCs(dt,t);updatePolice(dt);updateDayNight(t);drawMiniMap();
+ updateWaterWaves(clock.elapsedTime);movePlayer(dt);updateNPCs(dt,t);updatePolice(dt);updateDayNight(t);drawMiniMap();
  if(currentCar){const v=document.querySelector('#vehicleStats');if(v)v.textContent=`BENZİN ${Math.round(currentCar.fuel)}% · HASAR ${100-Math.round(currentCar.condition)}%`;}
  for(const c of cars){if(c.driving&&!c.police){
   c.mesh.position.x+=Math.cos(c.rotation)*c.speed*dt;

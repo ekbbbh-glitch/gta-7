@@ -514,8 +514,8 @@ function drawWorldMap(){
  const bridge=worldToMap(-225,-187);c.strokeStyle='#b8b8b2';c.lineWidth=20;c.beginPath();c.moveTo(bridge.x,worldToMap(-225,-286).y);c.lineTo(bridge.x,worldToMap(-225,-88).y);c.stroke();
  c.fillStyle='#f1d7a0';c.font='bold 13px Arial';c.fillText('KÖPRÜ',bridge.x+14,worldToMap(-225,-200).y);
  c.font='bold 12px Arial';
- for(const b of cityBuildings){const p=worldToMap(b.x,b.z);c.fillStyle=b.label==='BANK'?'#ffe16b':b.label==='MARKET'?'#8df0b0':'#e8e8df';c.fillRect(p.x-5,p.y-5,10,10);if(['BANK','MARKET','HOTEL','PORT','AIRPORT','GARAGE'].includes(b.label))c.fillText(b.label,p.x+8,p.y-7)}
- const sea=worldToMap(-180,-170);c.fillStyle='#d2f4ff';c.fillText('DENİZ / MARİNA',sea.x,sea.y);
+ for(const b of cityBuildings){const p=worldToMap(b.x,b.z);c.fillStyle=b.label==='BANK'?'#ffe16b':b.label==='MARKET'?'#8df0b0':'#e8e8df';c.fillRect(p.x-5,p.y-5,10,10);if(['BANK','MARKET','HOTEL','PORT','AIRPORT','GARAGE','HOSPITAL','GYM'].includes(b.label))c.fillText(b.label,p.x+8,p.y-7)}
+ const sea=worldToMap(-180,-170);c.fillStyle='#d2f4ff';c.fillText('DENİZ / MARİNA',sea.x,sea.y);const park=worldToMap(100,-100);c.fillStyle='#d5f07b';c.fillText('ÇOCUK PARKI',park.x,park.y);const cal=worldToMap(25,-105);c.fillText('CALISTHENICS',cal.x,cal.y);
  if(routePoints.length>1){c.strokeStyle='#c45bff';c.lineWidth=7;c.lineJoin='round';c.beginPath();routePoints.forEach((p,i)=>{const q=worldToMap(p.x,p.z);i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y)});c.stroke()}
  if(destination){const p=worldToMap(destination.x,destination.z);c.fillStyle='#d75cff';c.beginPath();c.arc(p.x,p.y,10,0,Math.PI*2);c.fill();c.fillStyle='#fff';c.fillText('HEDEF',p.x+12,p.y-10)}
  const me=worldToMap(player.position.x,player.position.z);c.fillStyle='#fff36a';c.beginPath();c.arc(me.x,me.y,8,0,Math.PI*2);c.fill();c.strokeStyle='#16232b';c.lineWidth=3;c.stroke();
@@ -550,7 +550,7 @@ function animate(){
   if(Math.abs(c.mesh.position.z)>365)c.mesh.position.z=-Math.sign(c.mesh.position.z)*365;
  }}
  const target=currentCar?currentCar.mesh.position:currentJetSki?currentJetSki.mesh.position:player.position;
- player.visible=cameraMode!=='first';
+ player.visible=cameraMode!=='first';firstPersonWeapon.visible=cameraMode==='first'&&weaponMode!=='none';
  if(cameraMode==='first'){const eyeY=currentCar?1.95:currentJetSki?1.65:1.68;camera.position.lerp(new THREE.Vector3(target.x,target.y+eyeY,target.z),1-Math.pow(.00001,dt));camera.lookAt(target.x-Math.sin(yaw)*Math.cos(pitch)*14,target.y+eyeY+Math.sin(pitch)*14,target.z-Math.cos(yaw)*Math.cos(pitch)*14)}
  else{const distance=insideBuilding?4.2:10.5,height=insideBuilding?3.2:5.7;const desired=new THREE.Vector3(target.x+Math.sin(yaw)*distance,target.y+height+pitch*8,target.z+Math.cos(yaw)*distance);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target.x,target.y+1.25,target.z)}
  renderer.render(scene,camera);

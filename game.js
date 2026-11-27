@@ -214,24 +214,54 @@ for(let i=0;i<42;i++){
 // Vehicles point along their local +X axis. Their rotation is aligned to the road.
 const cars=[],carColors=[0xd84c42,0x347eac,0xe5c24f,0xeeeeea,0x30343c,0x50a27c];
 const carTypes=['sedan','citroen','suv','sports','lamborghini'];
-const carNames={sedan:'Şehir Sedanı',citroen:'Citroën Tarzı Hatchback',suv:'SUV',sports:'Spor Coupe',lamborghini:'Lamborghini Tarzı Süper Spor'};
+const carNames={sedan:'Şehir Sedanı',citroen:'Citroën Tarzı Hatchback',suv:'SUV',sports:'Spor Coupe',lamborghini:'Lamborghini Tarzı Süper Spor',ferrari:'Ferrari Tarzı 812 GT'};
 function makeCar(x,z,color,driving=false,rotation=0,police=false,model=null){
  const g=new THREE.Group(),modelType=model||carTypes[cars.length%carTypes.length];
  const dims={sedan:[[4.5,1.05,2.05],[2.35,.95,1.72],.9,1.78],citroen:[[3.95,1,1.95],[2.15,1,1.7],.86,1.75],suv:[[4.7,1.4,2.2],[2.8,1.25,1.9],1.05,2.25],sports:[[4.65,.78,2.08],[1.9,.72,1.55],.76,1.48],lamborghini:[[4.8,.7,2.12],[1.65,.65,1.52],.72,1.42]}[modelType]||[[4.5,1.05,2.05],[2.35,.95,1.72],.9,1.78];
- const body=new THREE.Mesh(new THREE.BoxGeometry(...dims[0]),mat(color,.38,.12));body.position.y=dims[2];body.castShadow=true;g.add(body);
- const cabin=new THREE.Mesh(new THREE.BoxGeometry(...dims[1]),M.glass);cabin.position.set(-.15,dims[3],0);g.add(cabin);
- if(modelType==='lamborghini'||modelType==='sports'){const spoiler=new THREE.Mesh(new THREE.BoxGeometry(.22,.42,1.65),M.dark);spoiler.position.set(-2,1.25,0);g.add(spoiler);const splitter=new THREE.Mesh(new THREE.BoxGeometry(.55,.12,2.2),M.dark);splitter.position.set(2.25,.42,0);g.add(splitter)}
- if(modelType==='suv')for(const zz of [-.85,.85]){const rail=new THREE.Mesh(new THREE.BoxGeometry(2.3,.08,.08),M.chrome);rail.position.set(-.1,2.9,zz);g.add(rail)}
- if(modelType==='citroen'){const hatch=new THREE.Mesh(new THREE.BoxGeometry(.28,.55,1.78),mat(0xe7e9e8,.45));hatch.position.set(-2,1.1,0);g.add(hatch)}
- for(const side of [-1,1]){const hl=new THREE.Mesh(new THREE.BoxGeometry(.18,.2,.48),mat(0xfff0c8,.35));hl.position.set(2.28,.88,side*.67);g.add(hl);const tl=new THREE.Mesh(new THREE.BoxGeometry(.14,.22,.42),mat(0xb82f2a,.35));tl.position.set(-2.28,.85,side*.68);g.add(tl)}
- for(const xx of [-1.45,1.45])for(const zz of [-1,1]){
-  const w=new THREE.Mesh(new THREE.CylinderGeometry(.43,.43,.25,16),M.tire);w.rotation.x=Math.PI/2;w.position.set(xx,.48,zz);g.add(w);
-  const hub=new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.26,12),M.chrome);hub.rotation.x=Math.PI/2;hub.position.copy(w.position);g.add(hub);
+ if(modelType==='ferrari'){
+  const profile=new THREE.Shape();
+  profile.moveTo(-2.5,.38);profile.lineTo(-2.48,.72);profile.lineTo(-2.08,.91);profile.lineTo(-1.55,1.02);
+  profile.lineTo(-1.12,1.48);profile.lineTo(-.66,1.7);profile.lineTo(.28,1.7);profile.lineTo(.94,1.18);
+  profile.lineTo(2.16,.98);profile.lineTo(2.48,.72);profile.lineTo(2.42,.43);profile.lineTo(2.08,.34);
+  profile.lineTo(-2.18,.34);profile.closePath();
+  const bodyGeo=new THREE.ExtrudeGeometry(profile,{depth:1.96,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.045,bevelThickness:.035});
+  bodyGeo.translate(0,0,-.98);
+  const shell=new THREE.Mesh(bodyGeo,mat(color,.27,.36));shell.castShadow=true;g.add(shell);
+  const glassSide=new THREE.MeshStandardMaterial({color:0x182b38,roughness:.2,metalness:.28,side:THREE.DoubleSide});
+  const sidePanel=(points,z)=>{
+   const shape=new THREE.Shape();shape.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)shape.lineTo(points[i][0],points[i][1]);shape.closePath();
+   const pane=new THREE.Mesh(new THREE.ShapeGeometry(shape),glassSide);pane.position.z=z;g.add(pane);
+  };
+  for(const side of [-1,1]){
+   sidePanel([[-1.16,1.4],[-.75,1.63],[-.5,1.63],[-.52,1.25]],side*1.002);
+   sidePanel([[-.39,1.64],[.2,1.64],[.88,1.18],[-.16,1.18]],side*1.002);
+   const mirror=new THREE.Mesh(new THREE.BoxGeometry(.22,.12,.16),mat(color,.3,.3));mirror.position.set(-.2,1.42,side*1.08);g.add(mirror);
+   const headlight=new THREE.Mesh(new THREE.BoxGeometry(.18,.09,.42),mat(0xeaf4ff,.2,.25));headlight.position.set(2.28,.88,side*.63);g.add(headlight);
+   const tailLight=new THREE.Mesh(new THREE.BoxGeometry(.12,.16,.42),mat(0xb51f28,.3,.1));tailLight.position.set(-2.38,.78,side*.68);g.add(tailLight);
+  }
+  const roof=new THREE.Mesh(new THREE.BoxGeometry(.88,.12,1.58),mat(color,.25,.32));roof.position.set(-.2,1.69,0);g.add(roof);
+  const grille=new THREE.Mesh(new THREE.BoxGeometry(.08,.28,1.12),M.dark);grille.position.set(2.46,.59,0);g.add(grille);
+  const lowerLip=new THREE.Mesh(new THREE.BoxGeometry(.32,.1,2.08),M.dark);lowerLip.position.set(2.3,.39,0);g.add(lowerLip);
+  for(const side of [-1,1]){
+   const intake=new THREE.Mesh(new THREE.BoxGeometry(.09,.24,.38),M.dark);intake.position.set(2.38,.58,side*.73);g.add(intake);
+  }
+  const hoodLine=mat(0x858b91,.36,.42);
+  for(const side of [-1,1]){const line=new THREE.Mesh(new THREE.BoxGeometry(1.15,.018,.025),hoodLine);line.position.set(1.42,1.125,side*.62);g.add(line)}
+ }else{
+  const body=new THREE.Mesh(new THREE.BoxGeometry(...dims[0]),mat(color,.38,.12));body.position.y=dims[2];body.castShadow=true;g.add(body);
+  const cabin=new THREE.Mesh(new THREE.BoxGeometry(...dims[1]),M.glass);cabin.position.set(-.15,dims[3],0);g.add(cabin);
+  if(modelType==='lamborghini'||modelType==='sports'){const spoiler=new THREE.Mesh(new THREE.BoxGeometry(.22,.42,1.65),M.dark);spoiler.position.set(-2,1.25,0);g.add(spoiler);const splitter=new THREE.Mesh(new THREE.BoxGeometry(.55,.12,2.2),M.dark);splitter.position.set(2.25,.42,0);g.add(splitter)}
+  if(modelType==='suv')for(const zz of [-.85,.85]){const rail=new THREE.Mesh(new THREE.BoxGeometry(2.3,.08,.08),M.chrome);rail.position.set(-.1,2.9,zz);g.add(rail)}
+  if(modelType==='citroen'){const hatch=new THREE.Mesh(new THREE.BoxGeometry(.28,.55,1.78),mat(0xe7e9e8,.45));hatch.position.set(-2,1.1,0);g.add(hatch)}
+  for(const side of [-1,1]){const hl=new THREE.Mesh(new THREE.BoxGeometry(.18,.2,.48),mat(0xfff0c8,.35));hl.position.set(2.28,.88,side*.67);g.add(hl);const tl=new THREE.Mesh(new THREE.BoxGeometry(.14,.22,.42),mat(0xb82f2a,.35));tl.position.set(-2.28,.85,side*.68);g.add(tl)}
  }
- if(police){
-  const bar=new THREE.Mesh(new THREE.BoxGeometry(1.1,.18,.45),M.red);bar.position.set(-.1,2.35,0);g.add(bar);
-  const b2=new THREE.Mesh(new THREE.BoxGeometry(.45,.2,.45),M.blue);b2.position.set(.25,2.36,0);g.add(b2);
+ for(const xx of [-1.52,1.52])for(const zz of [-1,1]){
+  const radius=modelType==='ferrari'?.47:.43;
+  const w=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,.25,20),M.tire);w.rotation.x=Math.PI/2;w.position.set(xx,.48,zz*(modelType==='ferrari'?.99:1));g.add(w);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(modelType==='ferrari'?.235:.2,modelType==='ferrari'?.235:.2,.26,16),M.chrome);hub.rotation.x=Math.PI/2;hub.position.copy(w.position);g.add(hub);
+  if(modelType==='ferrari')for(let spoke=0;spoke<5;spoke++){const a=spoke*Math.PI*2/5;const bar=new THREE.Mesh(new THREE.BoxGeometry(.36,.045,.035),M.chrome);bar.position.set(xx+Math.cos(a)*.13,.48+Math.sin(a)*.13,zz*1.13);bar.rotation.z=a;g.add(bar)}
  }
+ if(police){const bar=new THREE.Mesh(new THREE.BoxGeometry(1.1,.18,.45),M.red);bar.position.set(-.1,2.35,0);g.add(bar);const b2=new THREE.Mesh(new THREE.BoxGeometry(.45,.2,.45),M.blue);b2.position.set(.25,2.36,0);g.add(b2)}
  g.position.set(x,0,z);g.rotation.y=rotation;scene.add(g);
  const car={mesh:g,driving,speed:driving?5+Math.random()*3:0,rotation,police,model:modelType,name:carNames[modelType]||'Araç',fuel:100,condition:100,hitCooldown:0,outOfFuelNotified:false};cars.push(car);return car;
 }
@@ -242,6 +272,8 @@ for(let i=0;i<8;i++)makeCar(-110+i*30,75.4,carColors[(i+3)%6],true,0);
 for(let i=0;i<8;i++)makeCar(-40.6,-105+i*30,carColors[i%6],true,Math.PI/2);
 for(let i=0;i<8;i++)makeCar(48.6,-105+i*30,carColors[(i+1)%6],true,-Math.PI/2);
 // Parked vehicles are kept off the active roadway.\nfor(let i=0;i<4;i++)makeCar(-48+i*32,45,carColors[(i+2)%6],false,0);
+// Fotoğraftaki gri Ferrari tarzı GT, başlangıç noktasının yakınına park edildi.
+makeCar(8.2,19,0x555a60,false,0,false,'ferrari');
 
 for(let i=0;i<8;i++)makeCar(-190+i*52,125.4,carColors[i%6],true,0);
 for(let i=0;i<8;i++)makeCar(190-i*52,132.6,carColors[(i+2)%6],true,Math.PI);
@@ -268,7 +300,7 @@ function updateUI(){
  document.querySelector('#missionText').textContent=story?['Hastane çıkışında kendine gel.','Bankaya git ve görevliyle konuş.','Marketin önüne git.','Şehri keşfetmeye devam et.'][missionStep]:'Hastaneden ayrıl ve Vice City\'yi keşfet.';
 }
 function switchCharacter(){characterIndex=(characterIndex+1)%colors.length;playerRig.torso.material=mat(colors[characterIndex]);toast('Karakter '+(characterIndex+1));updateUI()}
-function nearestCar(){let best=null,dist=7;for(const c of cars){if(c.driving||c.police)continue;const d=player.position.distanceTo(c.mesh.position);if(d<dist){best=c;dist=d}}return best}
+function nearestCar(){let best=null,dist=11.5;for(const c of cars){if(c.police||c===currentCar)continue;const d=player.position.distanceTo(c.mesh.position);if(d<dist){best=c;dist=d}}return best}
 const jetSkis=[];let currentJetSki=null;
 function makeJetSki(x,z,color){const g=new THREE.Group();const hull=new THREE.Mesh(new THREE.BoxGeometry(3.4,.55,1.22),mat(color,.36,.1));hull.position.y=.55;g.add(hull);const nose=new THREE.Mesh(new THREE.ConeGeometry(.62,1.4,4),mat(color,.36,.1));nose.rotation.z=-Math.PI/2;nose.position.set(1.85,.58,0);g.add(nose);const seat=new THREE.Mesh(new THREE.BoxGeometry(1.25,.42,.72),mat(0x171c22));seat.position.set(-.25,1,0);g.add(seat);const handle=new THREE.Mesh(new THREE.BoxGeometry(.18,.16,1.05),M.chrome);handle.position.set(.85,1.12,0);g.add(handle);g.position.set(x,.15,z);scene.add(g);const ski={mesh:g};jetSkis.push(ski);return ski;}
 for(let i=0;i<5;i++)makeJetSki(-90+i*32,-155,[0xe64b3e,0x247ba0,0xe2c846,0xf1f2ed,0x3ca77c][i]);
@@ -277,11 +309,11 @@ function getDistrictName(p){if(p.x<-140&&p.z<-250)return 'ADA / TATİL BÖLGESİ
 function nearestBuilding(){let best=null,distance=6.2;for(const b of cityBuildings){const d=player.position.distanceTo(b.door);if(d<distance){best=b;distance=d}}return best;}
 function useCar(){
  if(insideBuilding){player.position.copy(insideBuilding.exit);insideBuilding=null;const camDistance=10.5;camera.position.set(player.position.x+Math.sin(yaw)*camDistance,player.position.y+5.7+pitch*8,player.position.z+Math.cos(yaw)*camDistance);camera.lookAt(player.position.x,player.position.y+1.25,player.position.z);toast('Binadan çıktın');updateUI();return}
- if(currentCar){player.position.copy(currentCar.mesh.position);player.position.x+=3;currentCar=null;toast('Araçtan indin');updateUI();return}
+ if(currentCar){const exitOffset=new THREE.Vector3(0,0,2.6).applyQuaternion(currentCar.mesh.quaternion);player.position.copy(currentCar.mesh.position).add(exitOffset);player.position.y=0;currentCar=null;toast('Araçtan indin');updateUI();return}
  if(currentJetSki){player.position.copy(currentJetSki.mesh.position);player.position.x+=2.5;currentJetSki=null;toast('Jetskiden indin');updateUI();return}
  const c=nearestCar(),ski=nearestJetSki(),door=nearestBuilding();
  const dc=c?player.position.distanceTo(c.mesh.position):Infinity,ds=ski?player.position.distanceTo(ski.mesh.position):Infinity,db=door?player.position.distanceTo(door.door):Infinity;
- if(c&&dc<=ds&&dc<=db){currentCar=c;toast(c.name+' aracına bindin')}
+ if(c&&dc<=ds&&dc<=db){c.driving=false;c.speed=0;currentCar=c;toast(c.name+' aracına bindin · WASD ile sür')}
  else if(ski&&ds<=db){currentJetSki=ski;toast('Jetskiye bindin')}
  else if(door){insideBuilding=door;player.position.set(door.interior.position.x,0,door.interior.position.z);camera.position.set(player.position.x,3.2,player.position.z+4.2);camera.lookAt(player.position.x,1.25,player.position.z);toast(door.label+' içine girdin · E ile çık')}
  else toast('Yakında araç, jetski veya bina kapısı yok');

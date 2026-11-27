@@ -101,6 +101,8 @@ function building(x,z,w,d,height,color,label){
   for(let xx=-w/2+2;xx<w/2;xx+=4)localBox(g,xx,2.3,d/2+.4,.18,3.2,.2,M.white);
  }else if(label==='PORT'){
   localBox(g,0,2.5,d/2+.2,w*.7,4,.2,mat(0x737b7e));for(let xx=-w/2+2;xx<w/2-1;xx+=4)localBox(g,xx,1.8,d/2+.35,2,3,.2,M.chrome);localBox(g,0,height+.7,0,w*.6,.45,.4,M.red);
+ }else if(label==='HOUSE'){
+  localBox(g,0,height+.45,0,w+1,.55,d+1,mat(0x914f3d));localBox(g,0,2.2,d/2+.65,w*.55,.22,1.5,M.white);localBox(g,-w*.3,1.5,d/2+.2,.18,2.7,.25,M.white);localBox(g,w*.3,1.5,d/2+.2,.18,2.7,.25,M.white);localBox(g,0,1.35,d/2+.2,1.5,2.7,.22,mat(0x543b2d));for(const xx of [-w*.32,w*.32])localBox(g,xx,3.1,d/2+.16,1.6,1.5,.16,M.glass);
  }else{
   for(let xx=-w/2+1;xx<w/2;xx+=3)localBox(g,xx,height*.55,d/2+.12,1.2,height*.72,.12,M.glass);localBox(g,0,height+2,0,1,.9,1,M.dark);
  }
@@ -114,6 +116,9 @@ building(28,52,17,18,16,0xc7d9dc,'BANK');
 for(let i=0;i<10;i++){const x=-95+i*21;building(x,-38-(i%2)*7,13,13,15+(i%4)*5,[0xd9b7aa,0xd7d5bf,0xc2d6d3,0xe7c5a5][i%4],'VILLA')}
 building(94,-4,20,19,34,0xb8c8cf,'DOWNTOWN');building(100,47,18,18,25,0xd7c2a5,'HOTEL');
 building(170,112,38,18,13,0xd8e0dd,'AIRPORT');building(116,145,22,18,9,0xb9c5c9,'GARAGE');building(-160,-55,24,18,11,0xd2d5ca,'PORT');
+// Yeni konut mahalleleri: yolların arasına 30'dan fazla müstakil ev.
+const houseColors=[0xe8d6bd,0xd8e5df,0xe7c9b8,0xd7d4c4,0xc5d8e4,0xe9dfc8];
+for(let row=0;row<3;row++)for(let col=0;col<13;col++){const x=-312+col*52;if([-40,48,150,220].some(rx=>Math.abs(x-rx)<19))continue;const z=[98,148,198][row];building(x,z,12,11,7+(col%3),houseColors[(row*3+col)%houseColors.length],'HOUSE')}
 function createInterior(b,index){
  const room=new THREE.Group();room.position.set(200+(index%5)*24,0,190+Math.floor(index/5)*24);scene.add(room);room.userData.name=b.label;
  const floors={HOTEL:0x8c7a70,MARKET:0xb9b4a0,BANK:0x8f9a9a,VILLA:0x957b68,AIRPORT:0x9ca9ac,GARAGE:0x565f64,PORT:0x7d7569,DOWNTOWN:0x687985};
@@ -300,7 +305,7 @@ function updateUI(){
  document.querySelector('#missionText').textContent=story?['Hastane çıkışında kendine gel.','Bankaya git ve görevliyle konuş.','Marketin önüne git.','Şehri keşfetmeye devam et.'][missionStep]:'Hastaneden ayrıl ve Vice City\'yi keşfet.';
 }
 function switchCharacter(){characterIndex=(characterIndex+1)%colors.length;playerRig.torso.material=mat(colors[characterIndex]);toast('Karakter '+(characterIndex+1));updateUI()}
-function nearestCar(){let best=null,dist=11.5;for(const c of cars){if(c.police||c.driving||c===currentCar)continue;const d=player.position.distanceTo(c.mesh.position);if(d<dist){best=c;dist=d}}if(best)return best;dist=8;for(const c of cars){if(c.police||c===currentCar)continue;const d=player.position.distanceTo(c.mesh.position);if(d<dist){best=c;dist=d}}return best}
+function nearestCar(){let best=null,dist=18;const flatDistance=c=>Math.hypot(player.position.x-c.mesh.position.x,player.position.z-c.mesh.position.z);for(const c of cars){if(c.police||c.driving||c===currentCar)continue;const d=flatDistance(c);if(d<dist){best=c;dist=d}}if(best)return best;dist=7.5;for(const c of cars){if(c.police||c===currentCar)continue;const d=flatDistance(c);if(d<dist){best=c;dist=d}}return best}
 const jetSkis=[];let currentJetSki=null;
 function makeJetSki(x,z,color){const g=new THREE.Group();const hull=new THREE.Mesh(new THREE.BoxGeometry(3.4,.55,1.22),mat(color,.36,.1));hull.position.y=.55;g.add(hull);const nose=new THREE.Mesh(new THREE.ConeGeometry(.62,1.4,4),mat(color,.36,.1));nose.rotation.z=-Math.PI/2;nose.position.set(1.85,.58,0);g.add(nose);const seat=new THREE.Mesh(new THREE.BoxGeometry(1.25,.42,.72),mat(0x171c22));seat.position.set(-.25,1,0);g.add(seat);const handle=new THREE.Mesh(new THREE.BoxGeometry(.18,.16,1.05),M.chrome);handle.position.set(.85,1.12,0);g.add(handle);g.position.set(x,.15,z);scene.add(g);const ski={mesh:g};jetSkis.push(ski);return ski;}
 for(let i=0;i<5;i++)makeJetSki(-90+i*32,-155,[0xe64b3e,0x247ba0,0xe2c846,0xf1f2ed,0x3ca77c][i]);

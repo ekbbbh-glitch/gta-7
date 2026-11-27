@@ -182,6 +182,25 @@ function animateRig(rig,action,t,moveAmount=0){
  else if(action==='walk'||action==='run'){for(const a of rig.arms)a.shoulder.rotation.x=-swing*(a.side===1?1:-1)}
  rig.torso.rotation.z=action==='dodge'?.35:0;
 }
+const footPolice=[]; let policeHeli=null,heliRotor=null,heliTailRotor=null;
+function makeFootPolice(){const rig=person(0x172d50);rig.mesh.scale.setScalar(.92);scene.add(rig.mesh);return {rig,cooldown:0};}
+function makeHelicopter(){if(policeHeli)return;const g=new THREE.Group();scene.add(g);
+const body=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),mat(0x263b4c,.5));body.scale.set(2.4,.8,1);g.add(body);
+const glass=new THREE.Mesh(new THREE.SphereGeometry(.72,12,10),M.glass);glass.scale.set(1,.75,1.15);glass.position.set(1.2,.15,0);g.add(glass);
+const tail=new THREE.Mesh(new THREE.BoxGeometry(3.2,.16,.2),M.dark);tail.position.set(-3,0,0);g.add(tail);
+const fin=new THREE.Mesh(new THREE.BoxGeometry(.7,1,.16),M.dark);fin.position.set(-4.3,.45,0);g.add(fin);
+heliRotor=new THREE.Group();heliRotor.position.y=.85;g.add(heliRotor);
+const bladeA=new THREE.Mesh(new THREE.BoxGeometry(9,.055,.22),M.dark);heliRotor.add(bladeA);const bladeB=new THREE.Mesh(new THREE.BoxGeometry(.22,.055,9),M.dark);heliRotor.add(bladeB);
+heliTailRotor=new THREE.Group();heliTailRotor.position.set(-4.35,.45,0);g.add(heliTailRotor);
+const tbA=new THREE.Mesh(new THREE.BoxGeometry(.12,1.8,.12),M.dark);heliTailRotor.add(tbA);const tbB=new THREE.Mesh(new THREE.BoxGeometry(.12,.12,1.8),M.dark);heliTailRotor.add(tbB);
+policeHeli={mesh:g};g.position.set(player.position.x,26,player.position.z-35);}
+function updateExtraPolice(dt,t){
+if(wanted>0){while(footPolice.length<Math.min(1+wanted,4)){const p=makeFootPolice();p.rig.mesh.position.set(player.position.x+(Math.random()-.5)*24,0,player.position.z+18+Math.random()*12);footPolice.push(p)}}
+for(const p of footPolice){const m=p.rig.mesh;const dist=m.position.distanceTo(player.position);p.cooldown=Math.max(0,p.cooldown-dt);
+if(dist>1.9){const d=player.position.clone().sub(m.position);d.y=0;d.normalize();m.position.addScaledVector(d,dt*3.2);m.rotation.y=Math.atan2(d.x,d.z);animateRig(p.rig,'run',t,1)}
+else if(p.cooldown<=0&&!dead&&!currentCar){p.cooldown=1.6;animateRig(p.rig,'punch',t,0);if(playerAction!=='dodge'&&!guarding){health=Math.max(0,health-6);updateUI()}}}
+if(wanted>=3){makeHelicopter();const g=policeHeli.mesh;const target=new THREE.Vector3(player.position.x+Math.sin(t*.3)*22,27+Math.sin(t*1.2)*2,player.position.z+Math.cos(t*.3)*22);g.position.lerp(target,1-Math.pow(.08,dt));g.lookAt(player.position.x,18,player.position.z);heliRotor.rotation.y+=dt*18;heliTailRotor.rotation.x+=dt*24;}
+}
 function spawnPolice(){
  if(cars.some(c=>c.police))return;
  const p=makeCar(player.position.x-35,player.position.z+30,0xe9edf0,true,0,true);p.speed=10;
@@ -189,14 +208,14 @@ function spawnPolice(){
  const officer=person(0x182d52);officer.mesh.scale.setScalar(.9);officer.mesh.position.set(0,0,0);p.mesh.add(officer.mesh);p.officer=officer;
 }
 function updatePolice(dt){
- if(wanted>0){spawnPolice()}
- for(const c of cars.filter(c=>c.police)){
-  const dx=player.position.x-c.mesh.position.x,dz=player.position.z-c.mesh.position.z;
-  const desired=Math.atan2(-dz,dx);let diff=Math.atan2(Math.sin(desired-c.mesh.rotation.y),Math.cos(desired-c.mesh.rotation.y));
-  c.mesh.rotation.y+=THREE.MathUtils.clamp(diff,-dt*1.5,dt*1.5);
-  const dist=Math.hypot(dx,dz);if(dist>5)c.mesh.position.x+=Math.cos(c.mesh.rotation.y)*dt*9,c.mesh.position.z-=Math.sin(c.mesh.rotation.y)*dt*9;
-  if(dist<7&&Math.random()<dt*.8){if(playerAction!=='dodge'){health=Math.max(0,health-3);updateUI()}}
- }
+if(wanted>0){spawnPolice();updateExtraPolice(dt,clock.elapsedTime)}
+for(const c of cars.filter(c=>c.police)){
+const dx=player.position.x-c.mesh.position.x,dz=player.position.z-c.mesh.position.z;
+const desired=Math.atan2(dz,dx);let diff=Math.atan2(Math.sin(desired-c.mesh.rotation.y),Math.cos(desired-c.mesh.rotation.y));
+c.mesh.rotation.y+=THREE.MathUtils.clamp(diff,-dt*1.7,dt*1.7);const dist=Math.hypot(dx,dz);
+if(dist>6){c.mesh.position.x+=Math.cos(c.mesh.rotation.y)*dt*9;c.mesh.position.z+=Math.sin(c.mesh.rotation.y)*dt*9}
+if(dist<3.5&&Math.random()<dt*.7&&!dead&&!currentCar&&playerAction!=='dodge'&&!guarding){health=Math.max(0,health-4);updateUI()}
+}
 }
 function updateNPCs(dt,t){
  for(const n of npcs){
@@ -255,13 +274,20 @@ addEventListener('mousedown',e=>{if(e.button===0&&document.pointerLockElement===
 addEventListener('mouseup',e=>{if(e.button===2)guarding=false});
 addEventListener('contextmenu',e=>e.preventDefault());
 
+const streetLights=[];
+for(const [x,z] of [[-105,-52],[-55,-52],[0,-52],[55,-52],[105,-52],[-105,55],[-55,55],[0,55],[55,55],[105,55]]){const l=new THREE.PointLight(0xffdca0,0,34,2);l.position.set(x,5.7,z);scene.add(l);streetLights.push(l)}
+const daySky=new THREE.Color(0x8fc8d8),nightSky=new THREE.Color(0x071326),dayFog=new THREE.Color(0x8fc8d8),nightFog=new THREE.Color(0x101d35);
+function updateDayNight(t){const phase=(t/180)%(Math.PI*2),h=Math.sin(phase),day=THREE.MathUtils.smoothstep(h,-.18,.28);
+sun.position.set(Math.cos(phase)*90,Math.max(-15,h*100),Math.sin(phase)*60);sun.intensity=.12+day*2.9;
+scene.background.copy(nightSky).lerp(daySky,day);scene.fog.color.copy(nightFog).lerp(dayFog,day);scene.fog.near=day?115:45;scene.fog.far=day?360:190;
+for(const l of streetLights)l.intensity=(1-day)*2.1;}
 function animate(){
  requestAnimationFrame(animate);
  const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
  attackCooldown=Math.max(0,attackCooldown-dt);dodgeCooldown=Math.max(0,dodgeCooldown-dt);
  if(actionTimer>0){actionTimer-=dt;if(actionTimer<=0)playerAction='idle'}
  if(health<=0&&!dead){dead=true;const d=document.createElement('div');d.id='death-screen';d.style.cssText='position:fixed;inset:0;z-index:30;background:#05080dcc;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font:900 38px Arial;letter-spacing:4px;text-align:center';d.innerHTML='<div>ÖLDÜN</div><div style="font:600 15px Arial;letter-spacing:1px;margin-top:18px">R tuşuna basarak hastanede yeniden doğ</div>';document.body.appendChild(d)}
- movePlayer(dt);updateNPCs(dt,t);updatePolice(dt);
+ movePlayer(dt);updateNPCs(dt,t);updatePolice(dt);updateDayNight(t);
  for(const c of cars){if(c.driving&&!c.police){
   c.mesh.position.x+=Math.cos(c.rotation)*c.speed*dt;
   c.mesh.position.z-=Math.sin(c.rotation)*c.speed*dt;

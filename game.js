@@ -73,7 +73,7 @@ const hospital=new THREE.Group();scene.add(hospital);hospital.position.set(0,0,5
 function localBox(parent,x,y,z,sx,sy,sz,material){const o=new THREE.Mesh(safeBoxGeometry(sx,sy,sz,'localBox()'),material);o.position.set(...safePosition(x,y,z,'localBox()'));o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
 localBox(hospital,0,5,0,24,10,17,M.white);localBox(hospital,0,10.2,0,24,.5,17,M.blue);
 localBox(hospital,0,6,8.7,7,5,.4,M.glass);localBox(hospital,0,11,8.9,1.2,2,.5,M.red);localBox(hospital,0,11,8.9,4,.35,.5,M.white);
-for(let i=-1;i<=1;i++)localBox(hospital,i*6,3,8.8,3,5,.5,M.glass);
+for(let i=-1;i<=1;i++)localBox(hospital,i*6,3,8.8,3,5,.5,M.glass);localBox(hospital,0,11.1,9.2,3.8,.35,.25,M.red);localBox(hospital,0,11.1,9.2,.35,1.5,.25,M.red);localBox(hospital,0,.35,14,12,.7,5,M.sidewalk);
 
 const cityBuildings=[];
 function building(x,z,w,d,height,color,label){
@@ -101,6 +101,9 @@ function building(x,z,w,d,height,color,label){
   for(let xx=-w/2+2;xx<w/2;xx+=4)localBox(g,xx,2.3,d/2+.4,.18,3.2,.2,M.white);
  }else if(label==='PORT'){
   localBox(g,0,2.5,d/2+.2,w*.7,4,.2,mat(0x737b7e));for(let xx=-w/2+2;xx<w/2-1;xx+=4)localBox(g,xx,1.8,d/2+.35,2,3,.2,M.chrome);localBox(g,0,height+.7,0,w*.6,.45,.4,M.red);
+ }else if(label==='GYM'){
+  localBox(g,0,4,d/2+.3,w*.78,.6,.7,mat(0x202c38));localBox(g,0,4.35,d/2+.3,w*.65,.12,.72,mat(0xf2b84b));localBox(g,0,1.9,d/2+.22,w*.72,2.8,.18,M.glass);
+  for(const xx of [-w*.36,w*.36])localBox(g,xx,2.4,d/2+.45,.3,4.2,.3,M.dark);
  }else if(label==='HOUSE'){
   localBox(g,0,height+.45,0,w+1,.55,d+1,mat(0x914f3d));localBox(g,0,2.2,d/2+.65,w*.55,.22,1.5,M.white);localBox(g,-w*.3,1.5,d/2+.2,.18,2.7,.25,M.white);localBox(g,w*.3,1.5,d/2+.2,.18,2.7,.25,M.white);localBox(g,0,1.35,d/2+.2,1.5,2.7,.22,mat(0x543b2d));for(const xx of [-w*.32,w*.32])localBox(g,xx,3.1,d/2+.16,1.6,1.5,.16,M.glass);
  }else{
@@ -109,12 +112,13 @@ function building(x,z,w,d,height,color,label){
  g.position.set(x,0,z); // Keep every building at its own city coordinates.
  const record={mesh:g,x,z,width:w,depth:d,label,door:new THREE.Vector3(x,0,z+d/2+2.4),exit:new THREE.Vector3(x,0,z+d/2+4.5),interior:null,owned:false};cityBuildings.push(record);g.userData.building=record;return g;
 }
+const hospitalRecord={mesh:hospital,x:0,z:5,width:24,depth:17,label:'HOSPITAL',door:new THREE.Vector3(0,0,15.9),exit:new THREE.Vector3(0,0,19.5),interior:null,owned:false};cityBuildings.push(hospitalRecord);hospital.userData.building=hospitalRecord;
 building(-25,-2,15,18,19,0xd5b6a1,'HOTEL');
 building(25,-8,18,17,26,0xf0d4a4,'HOTEL');
 building(-28,52,17,18,14,0xe5e1d3,'MARKET');
 building(28,52,17,18,16,0xc7d9dc,'BANK');
 for(let i=0;i<10;i++){const x=-95+i*21;building(x,-38-(i%2)*7,13,13,15+(i%4)*5,[0xd9b7aa,0xd7d5bf,0xc2d6d3,0xe7c5a5][i%4],'VILLA')}
-building(94,-4,20,19,34,0xb8c8cf,'DOWNTOWN');building(100,47,18,18,25,0xd7c2a5,'HOTEL');
+building(-112,151,24,19,12,0xd8d9cf,'GYM');building(94,-4,20,19,34,0xb8c8cf,'DOWNTOWN');building(100,47,18,18,25,0xd7c2a5,'HOTEL');
 building(170,112,38,18,13,0xd8e0dd,'AIRPORT');building(116,145,22,18,9,0xb9c5c9,'GARAGE');building(-160,-55,24,18,11,0xd2d5ca,'PORT');
 // Yeni konut mahalleleri: yolların arasına 30'dan fazla müstakil ev.
 const houseColors=[0xe8d6bd,0xd8e5df,0xe7c9b8,0xd7d4c4,0xc5d8e4,0xe9dfc8];
@@ -132,10 +136,18 @@ function createInterior(b,index){
   localBox(room,-5,.55,-1,3,.9,1.5,leather);localBox(room,5,.55,-1,3,.9,1.5,leather);for(let x=-6;x<=6;x+=3)localBox(room,x,2.6,-6,.9,1.5,.12,M.glass);
  }else if(b.label==='MARKET'){
   for(const x of [-5,-2.5,2.5,5]){localBox(room,x,1.2,-1,1.1,2.4,5,wood);for(let yy=.7;yy<2.4;yy+=.65)localBox(room,x,yy,1.7,1.12,.07,.12,M.glass)}localBox(room,0,.65,-5,3,1.3,1,mat(0x5e777b));
+ for(const x of [-5,5]){localBox(room,x,1.25,4,1.2,2.5,1.2,M.blue);localBox(room,x,2.6,4,1.3,.12,1.3,M.white)}
  }else if(b.label==='BANK'){
   localBox(room,0,1.1,-4,8,1.5,1.5,wood);localBox(room,0,2,-4,7,.25,1.2,M.chrome);localBox(room,6,1.6,-5,2.5,3,.45,metal);
   for(let yy=.7;yy<2.6;yy+=.5)localBox(room,6,yy,-4.7,2,.08,.18,M.chrome);for(const x of [-5,-2,2,5])localBox(room,x,.5,3,1.2,1,.9,leather);
- }else if(b.label==='VILLA'){
+ }else if(b.label==='HOSPITAL'){
+  for(const x of [-5,0,5]){localBox(room,x,.55,-2,2.2,1.1,3.4,M.white);localBox(room,x,1.15,-2,2.05,.12,3.2,M.blue);localBox(room,x,1.5,-2,1.7,.18,2.5,M.white)}
+  localBox(room,0,1,-5,7,2,.9,wood);localBox(room,0,2.15,-5,6,.12,.7,M.white);for(const x of [-6,6]){localBox(room,x,.55,3,2.2,1.1,2.5,leather);localBox(room,x,1.15,3,2.1,.12,2.4,M.white)}
+  localBox(room,0,2.4,5,5,.18,.18,M.red);localBox(room,0,2.4,5,.18,2.2,.18,M.red);
+ }else if(b.label==='GYM'){
+  for(const x of [-6,-2,2,6]){localBox(room,x,.55,-3,1.4,1.1,1.2,metal);localBox(room,x,1.25,-3,1.5,.18,1.3,M.red);localBox(room,x,1.9,-3,.12,1.3,.12,M.chrome)}
+  for(const x of [-5,0,5]){localBox(room,x,.55,2,1.8,1.1,1.8,leather);localBox(room,x,1.2,2,1.7,.12,1.7,M.dark)}
+ }else if(b.label==='VILLA'||b.label==='HOUSE'){
   localBox(room,-3,.6,-2,4.5,1.1,2.2,leather);localBox(room,-3,1.2,-2,4.4,.2,2,M.white);localBox(room,4,.8,-4,3,.18,2.3,wood);localBox(room,4,1.3,-4,2.7,.75,.15,M.glass);
   localBox(room,-5,.5,3,2,.9,1.6,wood);localBox(room,4,.5,3,2,.9,1.6,wood);
  }else if(b.label==='AIRPORT'){
@@ -170,6 +182,25 @@ for(let i=0;i<35;i++){const x=-118+(i*47%236),z=-12+(i*31%125);if((Math.abs(z-28
 for(let i=0;i<9;i++){const x=-75+i*18;const pole=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,2.3,8),M.white);pole.position.set(x,1.15,-78);scene.add(pole);const top=new THREE.Mesh(new THREE.ConeGeometry(2.2,.8,10),i%2?M.pink:M.blue);top.position.set(x,2.5,-78);scene.add(top)}
 function bench(x,z){box(x,.65,z,3,.18,.7,mat(0x805333));box(x,.95,z-.28,3,.8,.16,mat(0x805333));for(const dx of [-1.2,1.2])box(x+dx,.3,z,.15,.7,.15,M.dark)}
 for(let i=0;i<6;i++)bench(-60+i*22,-66);
+function playground(x,z){
+ ground(x,z,42,30,mat(0x477c83));const yellow=mat(0xf0c34c),orange=mat(0xe77b45),bluePlay=mat(0x3989b9);
+ for(const dx of [-9,9]){box(x+dx,2,z-4,.45,4,.45,M.red);box(x+dx,4,z-4,4,.35,.35,yellow);box(x+dx,.8,z-4,2,.22,.65,bluePlay)}
+ for(const dx of [-13,13]){box(x+dx,1.2,z+7,.35,2.4,.35,M.chrome);box(x+dx,2.35,z+7,4,.3,.3,orange)}
+ const slide=new THREE.Mesh(new THREE.BoxGeometry(2.5,.18,7),orange);slide.position.set(x+13,1.25,z+12);slide.rotation.x=-.28;scene.add(slide);bench(x,z-13);bench(x+20,z+13);
+}
+function calisthenicsPark(x,z){
+ ground(x,z,48,28,mat(0x657b75));
+ for(const xx of [-15,-5,5,15]){const h=xx%10===5?3.3:2.5;for(const side of [-1,1])box(x+xx+side*1.8,h/2,z-3,.18,h,.18,M.dark);box(x+xx,h,z-3,3.8,.16,.16,M.chrome)}
+ for(const xx of [-13,0,13]){for(const side of [-1,1])box(x+xx+side*1.2,1.5,z+7,.18,3,.18,M.red);box(x+xx,3,z+7,2.6,.16,.16,M.chrome)}
+ for(let i=0;i<4;i++){const plate=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.18,16),M.dark);plate.rotation.x=Math.PI/2;plate.position.set(x-17+i*11,.7,z+12);scene.add(plate)}
+}
+playground(100,-100);calisthenicsPark(25,-105);
+function rockyHill(x,z,r,h){
+ const peak=new THREE.Mesh(new THREE.ConeGeometry(r,h,7,3),mat(0x77736b,.98));peak.position.set(x,h/2-.2,z);peak.rotation.y=.3;peak.castShadow=true;scene.add(peak);
+ for(let i=0;i<10;i++){const a=i*Math.PI*2/10,rr=r*(.48+Math.random()*.38),rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.8+Math.random()*1.8,0),mat([0x77736b,0x625f59,0x8a8274][i%3],1));rock.position.set(x+Math.cos(a)*rr,.2+Math.random()*1.4,z+Math.sin(a)*rr);rock.rotation.set(Math.random(),Math.random(),Math.random());rock.scale.y=.6+Math.random()*.8;rock.castShadow=true;scene.add(rock)}
+}
+for(const [x,z,r,h] of [[300,290,75,48],[245,-300,82,56],[-310,280,70,42],[-300,-15,48,28],[310,20,55,32]])rockyHill(x,z,r,h);
+
 for(let i=0;i<8;i++){const x=-105+i*30;const pole=new THREE.Mesh(new THREE.CylinderGeometry(.09,.12,6,8),M.dark);pole.position.set(x,3,-52);scene.add(pole);const lamp=new THREE.Mesh(new THREE.SphereGeometry(.35,10,8),mat(0xffe6a1,.25));lamp.position.set(x,6,-52);scene.add(lamp)}
 
 // Character rig: articulated arms and legs so combat has visible motion.
@@ -206,6 +237,32 @@ function person(color){
 }
 const colors=[0x286b9a,0x9a4d71,0x397d5d,0xb0783b];let characterIndex=0;
 const playerRig=person(colors[0]),player=playerRig.mesh;player.position.set(0,0,19);scene.add(player);
+let weaponMode='none',weaponAmmo={akm:30,pistol:15},weaponReserve={akm:120,pistol:90},weaponCooldown=0,tracer=null,tracerUntil=0;
+const weaponHolder=new THREE.Group();weaponHolder.position.set(.48,1.28,.5);player.add(weaponHolder);weaponHolder.visible=false;
+const firstPersonWeapon=new THREE.Group();firstPersonWeapon.position.set(.42,-.34,-.85);firstPersonWeapon.scale.setScalar(.65);camera.add(firstPersonWeapon);firstPersonWeapon.visible=false;
+const weaponMetal=mat(0x30343a,.38,.55),weaponWood=mat(0x765039),weaponGrip=mat(0x202329);
+function buildWeapon(kind){
+ weaponHolder.clear();if(kind==='akm'){
+  localBox(weaponHolder,0,0,0,.22,.25,.9,weaponMetal);localBox(weaponHolder,0,-.02,-.58,.17,.18,.42,weaponWood);localBox(weaponHolder,0,-.22,-.12,.15,.42,.18,weaponWood);localBox(weaponHolder,0,.13,.48,.09,.09,.95,weaponMetal);
+  const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.78,10),weaponMetal);barrel.rotation.x=Math.PI/2;barrel.position.set(0,.13,.88);weaponHolder.add(barrel);localBox(weaponHolder,0,.18,.02,.08,.08,.14,M.dark);
+ }else if(kind==='pistol'){
+  localBox(weaponHolder,0,0,0,.18,.16,.45,weaponMetal);localBox(weaponHolder,0,-.16,-.12,.14,.34,.16,weaponGrip);localBox(weaponHolder,0,.05,.32,.11,.09,.28,weaponMetal);
+  const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.28,10),weaponMetal);barrel.rotation.x=Math.PI/2;barrel.position.set(0,.05,.42);weaponHolder.add(barrel);
+ }
+ firstPersonWeapon.clear();for(const child of weaponHolder.children)firstPersonWeapon.add(child.clone(true));
+}
+function selectWeapon(kind){weaponMode=kind;weaponHolder.visible=kind!=='none';buildWeapon(kind);const h=document.querySelector('#weapon-stats');if(h)h.textContent=kind==='akm'?'AKM · '+weaponAmmo.akm+'/'+weaponReserve.akm:kind==='pistol'?'9MM · '+weaponAmmo.pistol+'/'+weaponReserve.pistol:'SİLAH: YUMRUK';toast(kind==='akm'?'AKM kuşanıldı':kind==='pistol'?'9MM kuşanıldı':'Silah modu kapalı')}
+function reloadWeapon(){if(weaponMode==='none')return;const cap=weaponMode==='akm'?30:15,need=cap-weaponAmmo[weaponMode],take=Math.min(need,weaponReserve[weaponMode]);if(take<=0){toast('Yedek mermi yok');return}weaponAmmo[weaponMode]+=take;weaponReserve[weaponMode]-=take;selectWeapon(weaponMode);toast('Şarjör dolduruldu')}
+function shootWeapon(){
+ if(weaponMode==='none'){hitNPC(false);return}if(currentCar||insideBuilding||dead||weaponCooldown>0)return;
+ if(weaponAmmo[weaponMode]<=0){toast('Şarjör boş · R ile doldur');weaponCooldown=.35;return}
+ weaponAmmo[weaponMode]--;weaponCooldown=weaponMode==='akm'?.13:.3;playSound('shot');
+ const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),camera);const hits=ray.intersectObjects(npcs.map(n=>n.rig.mesh),true);let end=ray.ray.origin.clone().addScaledVector(ray.ray.direction,70);
+ if(hits.length&&hits[0].distance<70){end=hits[0].point.clone();const hit=hits[0].object;const target=npcs.find(n=>{let p=hit;while(p&&p!==n.rig.mesh)p=p.parent;return p===n.rig.mesh});if(target){target.hostile=true;target.panicTimer=0;target.hp-=weaponMode==='akm'?38:52;target.stun=.4;wanted=Math.min(5,wanted+1);wantedTimer=38;if(target.hp<=0){target.hp=100;target.hostile=false;target.rig.mesh.position.copy(target.origin)}updateUI()}}
+ if(tracer){scene.remove(tracer);tracer.geometry.dispose();tracer.material.dispose()}
+ const geo=new THREE.BufferGeometry().setFromPoints([ray.ray.origin.clone(),end]);tracer=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0xffdf80,transparent:true,opacity:.9}));scene.add(tracer);tracerUntil=clock.elapsedTime+.07;
+ const h=document.querySelector('#weapon-stats');if(h)h.textContent=(weaponMode==='akm'?'AKM':'9MM')+' · '+weaponAmmo[weaponMode]+'/'+weaponReserve[weaponMode];
+}
 const npcs=[],npcColors=[0x9b684f,0x416c9b,0x76518e,0x4f8b68,0xb18a42,0x9c5550];
 for(let i=0;i<42;i++){
  const rig=person(npcColors[i%npcColors.length]);
@@ -294,7 +351,7 @@ let wantedTimer=0,insideBuilding=null,garageCar=null,cameraMode='third';
 let playerAction='idle',actionTimer=0,attackCooldown=0,dodgeCooldown=0,guarding=false,jumpVelocity=0;
 const keys={};let yaw=0,pitch=.18,clock=new THREE.Clock(),toastTimer;
 function playSound(type='ui'){
- try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audioContext)audioContext=new AC();if(audioContext.state==='suspended')audioContext.resume();const now=audioContext.currentTime;const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.connect(gain);gain.connect(audioContext.destination);const sounds={ui:[520,.055,'sine'],cash:[880,.11,'triangle'],card:[660,.16,'sine'],error:[150,.18,'sawtooth']};const [freq,duration,wave]=sounds[type]||sounds.ui;osc.type=wave;osc.frequency.setValueAtTime(freq,now);if(type==='cash'||type==='card')osc.frequency.exponentialRampToValueAtTime(freq*1.45,now+duration);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.12,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.start(now);osc.stop(now+duration+.02)}catch(err){console.warn('Ses efekti başlatılamadı',err)}
+ try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audioContext)audioContext=new AC();if(audioContext.state==='suspended')audioContext.resume();const now=audioContext.currentTime;const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.connect(gain);gain.connect(audioContext.destination);const sounds={ui:[520,.055,'sine'],cash:[880,.11,'triangle'],card:[660,.16,'sine'],error:[150,.18,'sawtooth'],shot:[110,.045,'square']};const [freq,duration,wave]=sounds[type]||sounds.ui;osc.type=wave;osc.frequency.setValueAtTime(freq,now);if(type==='cash'||type==='card')osc.frequency.exponentialRampToValueAtTime(freq*1.45,now+duration);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.12,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.start(now);osc.stop(now+duration+.02)}catch(err){console.warn('Ses efekti başlatılamadı',err)}
 }
 function toast(s){const el=document.querySelector('#toast');el.textContent=s;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1900);playSound('ui')}
 function updateUI(){
@@ -445,8 +502,10 @@ function movePlayer(dt){
  if(insideBuilding){player.position.x=THREE.MathUtils.clamp(player.position.x,insideBuilding.interior.position.x-7.5,insideBuilding.interior.position.x+7.5);player.position.z=THREE.MathUtils.clamp(player.position.z,insideBuilding.interior.position.z-5.5,insideBuilding.interior.position.z+5.5)}else{player.position.x=THREE.MathUtils.clamp(player.position.x,-350,350);player.position.z=THREE.MathUtils.clamp(player.position.z,-350,350)}
 }
 addEventListener('keydown',e=>{
+ if(e.key?.toLocaleLowerCase('tr-TR')==='ş'&&!e.repeat){toggleSettings();return}
+ if(e.code==='Escape'&&settingsOpen){toggleSettings(false);return}if(settingsOpen)return;
  keys[e.code]=true;if(e.repeat)return;if(e.code==='Escape'&&mapOpen){toggleMap(false);return}
- if(e.code==='Digit8')switchCharacter();
+ if(e.code==='Digit8')switchCharacter();if(!insideBuilding&&e.code==='Digit1')selectWeapon('akm');if(!insideBuilding&&e.code==='Digit2')selectWeapon('pistol');if(!insideBuilding&&e.code==='Digit3')selectWeapon('none');if(e.code==='KeyR'&&!dead&&weaponMode!=='none')reloadWeapon();
  if(e.code==='Digit9'){story=!story;toast(story?'Hikâye modu':'Serbest dolaşım');updateUI()}
  if(e.code==='KeyE')useCar();
   if(e.code==='KeyT')shopOrBankAction();
@@ -464,7 +523,7 @@ addEventListener('keydown',e=>{
 addEventListener('keyup',e=>{keys[e.code]=false});
 renderer.domElement.addEventListener('click',()=>{if(document.pointerLockElement!==renderer.domElement)renderer.domElement.requestPointerLock?.()});
 addEventListener('mousemove',e=>{if(document.pointerLockElement===renderer.domElement){yaw-=e.movementX*.0023;pitch=THREE.MathUtils.clamp(pitch+e.movementY*.0014,-.18,.62)}});
-addEventListener('mousedown',e=>{if(e.button===0&&document.pointerLockElement===renderer.domElement)hitNPC(false);if(e.button===2)guarding=true});
+addEventListener('mousedown',e=>{if(e.button===0&&document.pointerLockElement===renderer.domElement)shootWeapon();if(e.button===2)guarding=true});
 addEventListener('mouseup',e=>{if(e.button===2)guarding=false});
 addEventListener('contextmenu',e=>e.preventDefault());
 
@@ -482,10 +541,20 @@ for(const [x,z,vertical] of [
  const l=new THREE.PointLight(0xffdca0,0,27,2);l.position.set(head.position.x,5.4,head.position.z);scene.add(l);streetLights.push(l);
 }
 const daySky=new THREE.Color(0x8fc8d8),nightSky=new THREE.Color(0x071326),dayFog=new THREE.Color(0x8fc8d8),nightFog=new THREE.Color(0x101d35);
-function updateDayNight(t){const phase=(t/180)%(Math.PI*2),h=Math.sin(phase),day=THREE.MathUtils.smoothstep(h,-.18,.28);
+let manualHour=null,settingsOpen=false;
+function updateDayNight(t){const phase=manualHour===null?(t/180)%(Math.PI*2):(manualHour/24)*Math.PI*2-Math.PI/2,h=Math.sin(phase),day=THREE.MathUtils.smoothstep(h,-.18,.28);
 sun.position.set(Math.cos(phase)*90,Math.max(-15,h*100),Math.sin(phase)*60);sun.intensity=.12+day*2.9;
 scene.background.copy(nightSky).lerp(daySky,day);scene.fog.color.copy(nightFog).lerp(dayFog,day);scene.fog.near=insideBuilding?65:(day?145:55);scene.fog.far=insideBuilding?110:(day?560:300);
 for(const l of streetLights)l.intensity=(1-day)*2.1;}
+const settingsPanel=document.createElement('div');settingsPanel.id='settings-panel';settingsPanel.style.cssText='display:none;position:fixed;inset:12% 25%;z-index:60;background:#091723f2;color:#fff;border:2px solid #e8c66b;border-radius:16px;padding:22px;font:700 14px Inter,Arial;box-shadow:0 20px 70px #000b;backdrop-filter:blur(12px)';
+settingsPanel.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:24px;color:#ffd66d">OYUN AYARLARI</b><button id="settings-close">KAPAT ✕</button></div><p>Günün saatini seç veya otomatik döngüyü aç.</p><label for="time-range">SAAT: <b id="time-value">12:00</b></label><input id="time-range" type="range" min="0" max="23.9" step=".1" value="12" style="width:100%;margin:18px 0"><div style="display:flex;gap:8px;flex-wrap:wrap"><button data-hour="6">SABAH</button><button data-hour="12">ÖĞLE</button><button data-hour="18">AKŞAM</button><button data-hour="0">GECE</button><button id="auto-time">OTOMATİK GÜNDÜZ / GECE</button></div><p id="time-status">Manuel saat açık</p>';
+document.body.appendChild(settingsPanel);settingsPanel.querySelectorAll('button').forEach(b=>{b.style.cssText='padding:10px 13px;border:1px solid #ffffff35;border-radius:8px;background:#213849;color:white;font-weight:800;cursor:pointer'});
+const timeRange=settingsPanel.querySelector('#time-range'),timeValue=settingsPanel.querySelector('#time-value');
+timeRange.addEventListener('input',()=>{manualHour=Number(timeRange.value);timeValue.textContent=String(Math.floor(manualHour)).padStart(2,'0')+':'+String(Math.round((manualHour%1)*60)).padStart(2,'0');settingsPanel.querySelector('#time-status').textContent='Manuel saat açık'});
+settingsPanel.querySelectorAll('[data-hour]').forEach(b=>b.addEventListener('click',()=>{timeRange.value=b.dataset.hour;timeRange.dispatchEvent(new Event('input'))}));
+settingsPanel.querySelector('#auto-time').addEventListener('click',()=>{manualHour=null;settingsPanel.querySelector('#time-status').textContent='Otomatik gündüz / gece açık'});
+function toggleSettings(force){settingsOpen=force===undefined?!settingsOpen:force;settingsPanel.style.display=settingsOpen?'block':'none';if(settingsOpen){document.exitPointerLock?.();keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false}}
+settingsPanel.querySelector('#settings-close').addEventListener('click',()=>toggleSettings(false));
 let mapOpen=false,destination=null,routePoints=[],routeMesh=null;
 const mapPanel=document.createElement('div');mapPanel.id='world-map-panel';mapPanel.style.cssText='display:none;position:fixed;inset:4vh 4vw;z-index:40;background:#08151fee;border:2px solid #d8c06b;border-radius:14px;padding:14px;color:#fff;font:700 13px Inter,Arial;box-shadow:0 20px 70px #000b';
 mapPanel.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="color:#ffd66d;font-size:20px">VICE CITY · HARİTA</b><span>M: Kapat · Haritaya tıkla: hedef seç</span><button id="map-close" style="background:#a43b49;color:white;border:0;border-radius:7px;padding:8px 14px;font-weight:800">KAPAT ✕</button></div><canvas id="world-map" width="900" height="720" style="width:100%;height:calc(100% - 48px);display:block;background:#173c48;border-radius:8px;cursor:crosshair"></canvas>';
@@ -537,7 +606,7 @@ c.strokeStyle='#e8d79a';c.lineWidth=2;c.beginPath();c.arc(90,90,88,0,Math.PI*2);
 function animate(){
  requestAnimationFrame(animate);
  const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
- attackCooldown=Math.max(0,attackCooldown-dt);dodgeCooldown=Math.max(0,dodgeCooldown-dt);
+ attackCooldown=Math.max(0,attackCooldown-dt);dodgeCooldown=Math.max(0,dodgeCooldown-dt);weaponCooldown=Math.max(0,weaponCooldown-dt);if(tracer&&t>tracerUntil){scene.remove(tracer);tracer.geometry.dispose();tracer.material.dispose();tracer=null}
  if(actionTimer>0){actionTimer-=dt;if(actionTimer<=0)playerAction='idle'}
  if(health<=0&&!dead){dead=true;const d=document.createElement('div');d.id='death-screen';d.style.cssText='position:fixed;inset:0;z-index:30;background:#05080dcc;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font:900 38px Arial;letter-spacing:4px;text-align:center';d.innerHTML='<div>ÖLDÜN</div><div style="font:600 15px Arial;letter-spacing:1px;margin-top:18px">R tuşuna basarak hastanede yeniden doğ</div>';document.body.appendChild(d)}
  if(wanted>0&&wantedTimer>0){wantedTimer-=dt;if(wantedTimer<=0){wanted=Math.max(0,wanted-1);wantedTimer=wanted?18:0;updateUI()}}

@@ -401,9 +401,9 @@ for(let i=0;i<3;i++){const hull=new THREE.Mesh(new THREE.BoxGeometry(8,1.1,3),ma
 
 let currentCar=null,health=100,money=2500,wanted=0,story=false,missionStep=0,dead=false;let activeJob=null;
 let creditCard=false,creditDebt=0;const creditLimit=5000;let audioContext=null;
-homeRecord=cityBuildings.find(b=>b.label==='HOUSE'&&b.x===-312&&b.z===98)||cityBuildings.find(b=>b.label==='HOUSE');if(homeRecord){homeRecord.owned=true;homeRecord.isHome=true;}
 const inventory={Yiyecek:0,İçecek:0,Protein:0},homePantry={Yiyecek:0,İçecek:0,Protein:0};let bodyFat=0,muscle=0,heightGrowth=1,homeRecord=null;
 let wantedTimer=0,insideBuilding=null,garageCar=null,cameraMode='third';
+homeRecord=cityBuildings.find(b=>b.label==='HOUSE'&&b.x===-312&&b.z===98)||cityBuildings.find(b=>b.label==='HOUSE');if(homeRecord){homeRecord.owned=true;homeRecord.isHome=true;}
 let playerAction='idle',actionTimer=0,attackCooldown=0,dodgeCooldown=0,guarding=false,jumpVelocity=0;
 const keys={};let yaw=0,pitch=.18,clock=new THREE.Clock(),toastTimer;
 function playSound(type='ui'){

@@ -171,6 +171,52 @@ for(let zz=-250;zz<=-120;zz+=32)for(const dx of [-8,8]){const pier=new THREE.Mes
 ground(-225,-315,170,105,M.grass);ground(-225,-270,170,20,M.sand);
 for(let i=0;i<12;i++){const x=-295+(i%4)*43,z=-335+Math.floor(i/4)*27;building(x,z,18,15,12+(i%3)*4,[0xe7d2b1,0xd1e1df,0xf0d7c7][i%3],'VILLA')}
 for(let i=0;i<18;i++)palm(-305+(i*37%160),-345+(i*23%80),.9);
+
+// Şehir merkezi: yüksek camlı gökdelenler, neon tabelalar ve meydan.
+const towerColors=[0x29485a,0x3d5965,0x526b76,0x344b60];
+for(let i=0;i<12;i++){
+ const x=68+(i%4)*25,z=145+Math.floor(i/4)*24,h=34+(i%5)*11,w=13+(i%2)*3;
+ const tower=building(x,z,w,14,h,towerColors[i%towerColors.length],'DOWNTOWN');
+ for(let yy=4;yy<h-2;yy+=3.2)for(let xx=-w/2+1;xx<w/2-1;xx+=2.7){
+  const win=localBox(tower,xx,yy,7.12,.95,1.15,.08,mat((i+Math.floor(yy))%3===0?0xffd77a:0x8bd8e8,.25,.15));
+  win.material.emissive=new THREE.Color((i+Math.floor(yy))%3===0?0x6c4510:0x123b48);
+  win.material.emissiveIntensity=.42;
+ }
+}
+function parkingLot(x,z,w=34,d=25){
+ ground(x,z,w,d,mat(0x30363b));
+ for(let xx=-w/2+2;xx<w/2-1;xx+=3.2){
+  box(x+xx,.035,z, .09,.025,d-3,M.line,false);
+ }
+ for(const zz of [-d/2+1,d/2-1])box(x,.04,z+zz,w-2,.025,.12,M.line,false);
+ // Park yerleri ve kaldırım girişleri
+ for(let xx=-w/2+3;xx<w/2-2;xx+=3.2){
+  box(x+xx,.07,z-d/2+4,.08,.025,6,M.white,false);
+  box(x+xx,.07,z+d/2-4,.08,.025,6,M.white,false);
+ }
+}
+parkingLot(185,55,42,28);parkingLot(-92,55,38,25);parkingLot(185,180,42,28);
+function neonLamp(x,z,color=0xffd58a){
+ const pole=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,7,8),M.dark);pole.position.set(x,3.5,z);scene.add(pole);
+ const arm=new THREE.Mesh(new THREE.BoxGeometry(2.2,.14,.14),M.dark);arm.position.set(x+1,6.8,z);scene.add(arm);
+ const bulb=new THREE.Mesh(new THREE.BoxGeometry(.8,.22,.5),mat(color,.22,.1));bulb.position.set(x+1.8,6.65,z);scene.add(bulb);
+ const light=new THREE.PointLight(color,1.35,24,2);light.position.set(x+1.8,6.2,z);scene.add(light);streetLights.push(light);
+}
+for(const z of [28,78,128,178,228])for(let x=-210;x<=220;x+=35)if(Math.abs(x+40)>11&&Math.abs(x-48)>11&&Math.abs(x-150)>11&&Math.abs(x-220)>11)neonLamp(x,z,z===128?0x80dfff:0xffd58a);
+for(const x of [-40,48,150,220])for(let z=-30;z<=230;z+=38)if(Math.abs(z-28)>10&&Math.abs(z-78)>10&&Math.abs(z-128)>10&&Math.abs(z-178)>10&&Math.abs(z-228)>10)neonLamp(x,z,0xffd58a);
+
+// Geniş, refüjlü çevre yolu / otoyol ve rampalar.
+box(0,.12,270,720,.24,24,mat(0x20272d),false);
+box(0,.27,270,720,.05,.25,M.line,false);
+for(let x=-350;x<350;x+=13){box(x,.3,261,6,.035,.18,M.line,false);box(x,.3,279,6,.035,.18,M.line,false)}
+box(0,.55,270,720,.55,.5,mat(0x858b8d),false);
+for(let x=-340;x<=340;x+=28){box(x,.85,258,.45,1.2,.45,M.chrome,false);box(x,.85,282,.45,1.2,.45,M.chrome,false)}
+for(const x of [-300,-180,0,180,300]){for(const side of [-1,1])box(x,.15+1.4,270+side*10,1.1,2.8,1.1,mat(0x777b7d),false)}
+// Şehir içi kavşak meydanı ve yaya geçitleri.
+for(const x of [-40,48,150,220])for(const z of [28,78,128,178,228]){
+ for(let k=-3;k<=3;k++)box(x+k*1.35,.17,z-10,.7,.035,3,M.white,false);
+}
+
 // Airport, harbor, fuel station and garage landmarks.
 box(158,.02,165,112,.12,28,M.road,false);for(let x=110;x<207;x+=12)box(x,.10,165,5,.025,.22,M.line,false);box(-150,.12,-111,10,.3,48,mat(0x775a3f),false);for(let z=-126;z<-92;z+=8)box(-150,.32,z,12,.12,.35,M.white,false);
 box(92,4.1,104,19,.45,11,mat(0xe7e5d8),false);for(const x of [84,100]){box(x,2,100,.35,4,.35,M.dark,false);box(x,2,108,.35,4,.35,M.dark,false)}for(const x of [88,96]){box(x,1,104,.9,2,.8,M.white);box(x,2.1,104,.5,.25,.45,M.red)}const fuelStation=new THREE.Vector3(92,0,104),garageSpot=new THREE.Vector3(116,0,158);box(116,.03,158,24,.12,22,M.sidewalk,false);
@@ -190,12 +236,15 @@ function playground(x,z){
  const slide=new THREE.Mesh(new THREE.BoxGeometry(2.5,.18,7),orange);slide.position.set(x+13,1.25,z+12);slide.rotation.x=-.28;scene.add(slide);bench(x,z-13);bench(x+20,z+13);
 }
 function calisthenicsPark(x,z){
- ground(x,z,48,28,mat(0x657b75));
+ ground(x,z,52,32,mat(0x657b75));
+ // Kauçuk zemin, çevre çiti ve egzersiz istasyonları
+ for(const side of [-1,1]){box(x+side*25,.8,z,.22,1.6,32,M.dark);for(let zz=-14;zz<=14;zz+=7)box(x+side*25,1.65,z+zz,.25,.18,.25,M.chrome)}
+ for(const zz of [-16,16])box(x,.8,z+zz,50,.22,.22,M.dark);
  for(const xx of [-15,-5,5,15]){const h=xx%10===5?3.3:2.5;for(const side of [-1,1])box(x+xx+side*1.8,h/2,z-3,.18,h,.18,M.dark);box(x+xx,h,z-3,3.8,.16,.16,M.chrome)}
  for(const xx of [-13,0,13]){for(const side of [-1,1])box(x+xx+side*1.2,1.5,z+7,.18,3,.18,M.red);box(x+xx,3,z+7,2.6,.16,.16,M.chrome)}
  for(let i=0;i<4;i++){const plate=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.18,16),M.dark);plate.rotation.x=Math.PI/2;plate.position.set(x-17+i*11,.7,z+12);scene.add(plate)}
 }
-playground(100,-55);calisthenicsPark(25,-60);
+playground(100,-55);calisthenicsPark(-105,-60);
 function rockyHill(x,z,r,h){
  const peak=new THREE.Mesh(new THREE.ConeGeometry(r,h,7,3),mat(0x77736b,.98));peak.position.set(x,h/2-.2,z);peak.rotation.y=.3;peak.castShadow=true;scene.add(peak);
  for(let i=0;i<10;i++){const a=i*Math.PI*2/10,rr=r*(.48+Math.random()*.38),rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.8+Math.random()*1.8,0),mat([0x77736b,0x625f59,0x8a8274][i%3],1));rock.position.set(x+Math.cos(a)*rr,.2+Math.random()*1.4,z+Math.sin(a)*rr);rock.rotation.set(Math.random(),Math.random(),Math.random());rock.scale.y=.6+Math.random()*.8;rock.castShadow=true;scene.add(rock)}
@@ -237,6 +286,8 @@ function person(color){
  return {mesh:g,arms,legs,torso,head};
 }
 const colors=[0x286b9a,0x9a4d71,0x397d5d,0xb0783b];let characterIndex=0;
+const workoutSpot=new THREE.Vector3(-105,0,-60);let workoutIndex=0;
+const workoutNames=['BARFİKS','DİPS','MUSCLE UP'];
 const playerRig=person(colors[0]),player=playerRig.mesh;player.position.set(0,0,19);scene.add(player);
 let weaponMode='none',weaponAmmo={akm:30,pistol:15},weaponReserve={akm:120,pistol:90},weaponCooldown=0,tracer=null,tracerUntil=0;
 const weaponHolder=new THREE.Group();weaponHolder.position.set(.48,1.28,.5);player.add(weaponHolder);weaponHolder.visible=false;
@@ -318,15 +369,16 @@ function makeCar(x,z,color,driving=false,rotation=0,police=false,model=null){
   if(modelType==='citroen'){const hatch=new THREE.Mesh(new THREE.BoxGeometry(.28,.55,1.78),mat(0xe7e9e8,.45));hatch.position.set(-2,1.1,0);g.add(hatch)}
   for(const side of [-1,1]){const hl=new THREE.Mesh(new THREE.BoxGeometry(.18,.2,.48),mat(0xfff0c8,.35));hl.position.set(2.28,.88,side*.67);g.add(hl);const tl=new THREE.Mesh(new THREE.BoxGeometry(.14,.22,.42),mat(0xb82f2a,.35));tl.position.set(-2.28,.85,side*.68);g.add(tl)}
  }
+ const wheelMeshes=[];
  for(const xx of [-1.52,1.52])for(const zz of [-1,1]){
   const radius=modelType==='ferrari'?.47:.43;
-  const w=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,.25,20),M.tire);w.rotation.x=Math.PI/2;w.position.set(xx,.48,zz*(modelType==='ferrari'?.99:1));g.add(w);
+  const w=new THREE.Mesh(new THREE.CylinderGeometry(radius,radius,.25,20),M.tire);w.rotation.x=Math.PI/2;w.position.set(xx,.48,zz*(modelType==='ferrari'?.99:1));g.add(w);wheelMeshes.push(w);
   const hub=new THREE.Mesh(new THREE.CylinderGeometry(modelType==='ferrari'?.235:.2,modelType==='ferrari'?.235:.2,.26,16),M.chrome);hub.rotation.x=Math.PI/2;hub.position.copy(w.position);g.add(hub);
   if(modelType==='ferrari')for(let spoke=0;spoke<5;spoke++){const a=spoke*Math.PI*2/5;const bar=new THREE.Mesh(new THREE.BoxGeometry(.36,.045,.035),M.chrome);bar.position.set(xx+Math.cos(a)*.13,.48+Math.sin(a)*.13,zz*1.13);bar.rotation.z=a;g.add(bar)}
  }
  if(police){const bar=new THREE.Mesh(new THREE.BoxGeometry(1.1,.18,.45),M.red);bar.position.set(-.1,2.35,0);g.add(bar);const b2=new THREE.Mesh(new THREE.BoxGeometry(.45,.2,.45),M.blue);b2.position.set(.25,2.36,0);g.add(b2)}
  g.position.set(x,0,z);g.rotation.y=rotation;scene.add(g);
- const car={mesh:g,driving,speed:driving?5+Math.random()*3:0,rotation,police,model:modelType,name:carNames[modelType]||'Araç',fuel:100,condition:100,hitCooldown:0,outOfFuelNotified:false};cars.push(car);return car;
+ const car={mesh:g,driving,speed:driving?5+Math.random()*3:0,rotation,police,model:modelType,name:carNames[modelType]||'Araç',fuel:100,condition:100,hitCooldown:0,outOfFuelNotified:false,wheels:wheelMeshes};cars.push(car);return car;
 }
 // Two-way lanes on the main avenues; vertical roads have cars turned 90 degrees.
 for(let i=0;i<10;i++)makeCar(-112+i*23,25.4,carColors[i%6],true,0);
@@ -420,7 +472,11 @@ function animateRig(rig,action,t,moveAmount=0){
  else if(action==='kick'){rig.arms[0].shoulder.rotation.x=-.9;rig.arms[1].shoulder.rotation.x=-.9;rig.legs[1].hip.rotation.x=-1.65}
  else if(action==='dodge'){rig.torso.rotation.z=.35;rig.legs[0].hip.rotation.x=-.7;rig.legs[1].hip.rotation.x=.7}
  else if(action==='guard'){for(const a of rig.arms){a.shoulder.rotation.x=-1.35;a.elbow.rotation.x=-.8}}
+ else if(action==='pullup'){const lift=.5+.5*Math.sin(t*5);for(const a of rig.arms){a.shoulder.rotation.x=-2.75+lift*.12;a.shoulder.rotation.z=a.side*.12;a.elbow.rotation.x=-1.65+lift*.18}rig.torso.position.y=1.35+lift*.22;for(const l of rig.legs)l.hip.rotation.x=.18}
+ else if(action==='dip'){const dip=.5+.5*Math.sin(t*5.5);for(const a of rig.arms){a.shoulder.rotation.x=-1.85+dip*.48;a.elbow.rotation.x=-.5-dip*.85}rig.torso.position.y=1.35-dip*.18;for(const l of rig.legs)l.hip.rotation.x=.12}
+ else if(action==='muscleup'){const phase=(t%2.8)/2.8;const lift=phase<.45?phase/.45:phase<.72?1:(1-phase)/.28;for(const a of rig.arms){a.shoulder.rotation.x=phase<.5?-2.5+lift*.5:-1.35-lift*.25;a.elbow.rotation.x=phase<.5?-1.5:-.35}rig.torso.rotation.x=phase>.45&&phase<.8?-.55:0;rig.torso.position.y=1.35+lift*.3;for(const l of rig.legs)l.hip.rotation.x=.2}
  else if(action==='walk'||action==='run'){for(const a of rig.arms)a.shoulder.rotation.x=-swing*(a.side===1?1:-1)}
+ if(!['pullup','dip','muscleup'].includes(action))rig.torso.position.y=1.35;
  rig.torso.rotation.z=action==='dodge'?.35:0;
 }
 const footPolice=[]; let policeHeli=null,heliRotor=null,heliTailRotor=null;
@@ -489,7 +545,7 @@ function movePlayer(dt){
  if(currentJetSki){if(dir.lengthSq()){currentJetSki.mesh.position.addScaledVector(dir,dt*13);currentJetSki.mesh.rotation.y=Math.atan2(-dir.z,dir.x)}currentJetSki.mesh.position.y=.22+Math.sin(clock.elapsedTime*1.5+currentJetSki.mesh.position.x*.08)*.12;player.position.copy(currentJetSki.mesh.position);player.position.y+=.15;
  }else if(currentCar){
   currentCar.hitCooldown=Math.max(0,currentCar.hitCooldown-dt);
-  if(dir.lengthSq()&&currentCar.fuel>0){currentCar.mesh.position.addScaledVector(dir,speed*2.0*dt);currentCar.mesh.rotation.y=Math.atan2(-dir.z,dir.x);currentCar.fuel=Math.max(0,currentCar.fuel-dt*(running?0.09:0.055));currentCar.outOfFuelNotified=false}
+  if(dir.lengthSq()&&currentCar.fuel>0){currentCar.mesh.position.addScaledVector(dir,(running?30:21)*dt);currentCar.mesh.rotation.y=Math.atan2(-dir.z,dir.x);currentCar.fuel=Math.max(0,currentCar.fuel-dt*(running?0.09:0.055));currentCar.outOfFuelNotified=false}
   else if(dir.lengthSq()&&currentCar.fuel<=0&&!currentCar.outOfFuelNotified){toast('Benzin bitti · B ile istasyonda doldur');currentCar.outOfFuelNotified=true}
   if(currentCar.hitCooldown<=0){const obstacle=cars.find(c=>c!==currentCar&&!c.police&&c.mesh.position.distanceTo(currentCar.mesh.position)<3.2);if(obstacle){currentCar.condition=Math.max(0,currentCar.condition-14);currentCar.hitCooldown=1.2;toast('Araç hasar aldı!');if(currentCar.condition<=0){currentCar.fuel=0;toast('Araç kullanılamaz durumda')}}}
   player.position.copy(currentCar.mesh.position);player.position.y=-.2;
@@ -513,6 +569,9 @@ addEventListener('keydown',e=>{
   if(insideBuilding?.label==='MARKET'&&['Digit1','Digit2','Digit3'].includes(e.code))shopOrBankAction(e.code);
  if(e.code==='KeyB')refuel();if(e.code==='KeyV')garageAction();
  if(e.code==='KeyP'&&!dead){const b=nearestBuilding();if(b&&b.label==='VILLA'){if(b.owned)toast('Bu ev zaten senin');else if(money>=8000){money-=8000;b.owned=true;toast('Villa satın alındı!');updateUI()}else toast('Villa için $8000 gerekli')}}
+ if(e.code==='KeyX'&&!currentCar&&!currentJetSki&&!insideBuilding&&!dead&&player.position.distanceTo(workoutSpot)<28){
+ const actions=['pullup','dip','muscleup'];const labels=['BARFİKS','DİPS','MUSCLE UP'];const action=actions[workoutIndex%3];workoutIndex++;player.position.x=workoutSpot.x;player.position.z=workoutSpot.z+4;player.rotation.y=Math.PI;startAction(action,4.2);toast(labels[(workoutIndex-1)%3]+' animasyonu başladı');
+ }
  if(e.code==='KeyF')hitNPC(false);
  if(e.code==='KeyG')hitNPC(true);
  if(e.code==='KeyQ')dodge();
@@ -585,7 +644,7 @@ function drawWorldMap(){
  c.fillStyle='#f1d7a0';c.font='bold 13px Arial';c.fillText('KÖPRÜ',bridge.x+14,worldToMap(-225,-200).y);
  c.font='bold 12px Arial';
  for(const b of cityBuildings){const p=worldToMap(b.x,b.z);c.fillStyle=b.label==='BANK'?'#ffe16b':b.label==='MARKET'?'#8df0b0':'#e8e8df';c.fillRect(p.x-5,p.y-5,10,10);if(['BANK','MARKET','HOTEL','PORT','AIRPORT','GARAGE','HOSPITAL','GYM'].includes(b.label))c.fillText(b.label,p.x+8,p.y-7)}
- const sea=worldToMap(-180,-170);c.fillStyle='#d2f4ff';c.fillText('DENİZ / MARİNA',sea.x,sea.y);const park=worldToMap(100,-55);c.fillStyle='#d5f07b';c.fillText('ÇOCUK PARKI',park.x,park.y);const cal=worldToMap(25,-60);c.fillText('CALISTHENICS',cal.x,cal.y);
+ const sea=worldToMap(-180,-170);c.fillStyle='#d2f4ff';c.fillText('DENİZ / MARİNA',sea.x,sea.y);const park=worldToMap(100,-55);c.fillStyle='#d5f07b';c.fillText('ÇOCUK PARKI',park.x,park.y);const cal=worldToMap(-105,-60);c.fillText('CALISTHENICS PARK',cal.x,cal.y);
  if(routePoints.length>1){c.strokeStyle='#c45bff';c.lineWidth=7;c.lineJoin='round';c.beginPath();routePoints.forEach((p,i)=>{const q=worldToMap(p.x,p.z);i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y)});c.stroke()}
  if(destination){const p=worldToMap(destination.x,destination.z);c.fillStyle='#d75cff';c.beginPath();c.arc(p.x,p.y,10,0,Math.PI*2);c.fill();c.fillStyle='#fff';c.fillText('HEDEF',p.x+12,p.y-10)}
  const me=worldToMap(player.position.x,player.position.z);c.fillStyle='#fff36a';c.beginPath();c.arc(me.x,me.y,8,0,Math.PI*2);c.fill();c.strokeStyle='#16232b';c.lineWidth=3;c.stroke();
@@ -612,10 +671,11 @@ function animate(){
  if(health<=0&&!dead){dead=true;const d=document.createElement('div');d.id='death-screen';d.style.cssText='position:fixed;inset:0;z-index:30;background:#05080dcc;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font:900 38px Arial;letter-spacing:4px;text-align:center';d.innerHTML='<div>ÖLDÜN</div><div style="font:600 15px Arial;letter-spacing:1px;margin-top:18px">R tuşuna basarak hastanede yeniden doğ</div>';document.body.appendChild(d)}
  if(wanted>0&&wantedTimer>0){wantedTimer-=dt;if(wantedTimer<=0){wanted=Math.max(0,wanted-1);wantedTimer=wanted?18:0;updateUI()}}
  updateWaterWaves(clock.elapsedTime);movePlayer(dt);updateNPCs(dt,t);updatePolice(dt);updateDayNight(t);drawMiniMap();if(destination&&Math.hypot(player.position.x-destination.x,player.position.z-destination.z)<8){destination=null;routePoints=[];if(routeMesh){scene.remove(routeMesh);routeMesh=null}toast('Hedefe ulaştın!')}if(mapOpen)drawWorldMap();
- if(currentCar){const v=document.querySelector('#vehicleStats');if(v)v.textContent=`BENZİN ${Math.round(currentCar.fuel)}% · HASAR ${100-Math.round(currentCar.condition)}%`;for(const w of currentCar.wheels||[])if(w.front)w.pivot.rotation.y=THREE.MathUtils.damp(w.pivot.rotation.y,currentCar.steer||0,8,dt)}
+ if(currentCar){const v=document.querySelector('#vehicleStats');if(v)v.textContent=`BENZİN ${Math.round(currentCar.fuel)}% · HASAR ${100-Math.round(currentCar.condition)}%`;for(const w of currentCar.wheels||[])w.rotation.z-=((keys.KeyW||keys.KeyS||keys.ArrowUp||keys.ArrowDown)?(keys.KeyS||keys.ArrowDown?-1:1):0)*dt*9}
  for(const c of cars){const night=sun.intensity<1.1;for(const l of c.headlightLights||[])l.intensity=night?2.6:0;for(const l of c.tailLights||[])l.intensity=night?0.35:0;if(c.driving&&!c.police){
-  c.mesh.position.x+=Math.cos(c.rotation)*c.speed*dt;
-  c.mesh.position.z-=Math.sin(c.rotation)*c.speed*dt;
+  c.mesh.position.x+=Math.cos(c.rotation)*c.speed*dt*1.8;
+  c.mesh.position.z-=Math.sin(c.rotation)*c.speed*dt*1.8;
+  for(const w of c.wheels||[])w.rotation.z-=c.speed*dt*1.8;
   if(Math.abs(c.mesh.position.x)>365)c.mesh.position.x=-Math.sign(c.mesh.position.x)*365;
   if(Math.abs(c.mesh.position.z)>365)c.mesh.position.z=-Math.sign(c.mesh.position.z)*365;
  }}

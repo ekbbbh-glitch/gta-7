@@ -5,10 +5,10 @@ const scene=new THREE.Scene();
 scene.background=new THREE.Color(0x8fc8d8);
 scene.fog=new THREE.Fog(0x8fc8d8,145,560);
 const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,700);
-const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const renderer=new THREE.WebGLRenderer({antialias:false,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.1));
 renderer.setSize(innerWidth,innerHeight);
-renderer.shadowMap.enabled=true;
+renderer.shadowMap.enabled=false;
 renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
@@ -18,7 +18,7 @@ root.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xdff7ff,0x52604b,2.0));
 const sun=new THREE.DirectionalLight(0xffedcf,3.1);
 sun.position.set(-55,95,45);sun.castShadow=true;
-sun.shadow.mapSize.set(2048,2048);
+sun.shadow.mapSize.set(512,512);
 sun.shadow.camera.left=-380;sun.shadow.camera.right=380;sun.shadow.camera.top=380;sun.shadow.camera.bottom=-380;
 sun.shadow.bias=-.00025;scene.add(sun);
 
@@ -163,6 +163,7 @@ function createInterior(b,index){
  b.interior=room;
 }
 cityBuildings.forEach(createInterior);
+homeRecord=cityBuildings.find(b=>b.label==='HOUSE'&&b.x===-312&&b.z===98)||cityBuildings.find(b=>b.label==='HOUSE');if(homeRecord){homeRecord.owned=true;homeRecord.isHome=true;}
 
 // Sea bridge and new resort island.
 const bridgeX=-225;box(bridgeX,.53,-187,16,.46,198,mat(0x30383e),false);box(bridgeX,.775,-187,.22,.025,198,M.line,false);
@@ -400,6 +401,7 @@ for(let i=0;i<3;i++){const hull=new THREE.Mesh(new THREE.BoxGeometry(8,1.1,3),ma
 
 let currentCar=null,health=100,money=2500,wanted=0,story=false,missionStep=0,dead=false;
 let creditCard=false,creditDebt=0;const creditLimit=5000;let audioContext=null;
+const inventory={Yiyecek:0,İçecek:0,Protein:0};let bodyFat=0,muscle=0,heightGrowth=1,homeRecord=null;
 let wantedTimer=0,insideBuilding=null,garageCar=null,cameraMode='third';
 let playerAction='idle',actionTimer=0,attackCooldown=0,dodgeCooldown=0,guarding=false,jumpVelocity=0;
 const keys={};let yaw=0,pitch=.18,clock=new THREE.Clock(),toastTimer;
@@ -426,14 +428,15 @@ function shopOrBankAction(choice=null){
   updateUI();return;
  }
  if(insideBuilding.label!=='MARKET'){toast('Burada alışveriş yapılamaz');return}
- if(!choice){toast('MARKET · 1: Yiyecek $25 · 2: İçecek $15 · 3: Sağlık kiti $80');return}
- const goods={Digit1:{name:'Yiyecek',price:25,heal:8},Digit2:{name:'İçecek',price:15,heal:3},Digit3:{name:'Sağlık kiti',price:80,heal:35}};
+ if(!choice){toast('BİM · 1: Yiyecek $25 · 2: İçecek $15 · 3: Protein $60');return}
+ const goods={Digit1:{name:'Yiyecek',price:25},Digit2:{name:'İçecek',price:15},Digit3:{name:'Protein',price:60}};
  const item=goods[choice];if(!item)return;
  if(money>=item.price)money-=item.price;
  else if(creditCard&&creditDebt+item.price<=creditLimit)creditDebt+=item.price;
  else{playSound('error');toast(creditCard?'Kart limiti yetersiz':'Yetersiz nakit · Bankadan kart çıkar');return}
- health=Math.min(100,health+item.heal);playSound('cash');toast(item.name+' satın alındı · Sağlık +'+item.heal);updateUI();
+ inventory[item.name]=(inventory[item.name]||0)+1;playSound('cash');toast(item.name+' satın alındı · '+inventory[item.name]+' adet');updateUI();
 }
+function eatAtHome(){if(!homeRecord||!homeRecord.owned||player.position.distanceTo(homeRecord.door)>22){toast('Yemek için kendi evinin yakınına git');return}if(inventory.Yiyecek>0){inventory.Yiyecek--;bodyFat=Math.min(1,bodyFat+.035);health=Math.min(100,health+7);toast('Yemek yedin · Göbek yavaşça büyüyor')}else if(inventory.Protein>0){inventory.Protein--;muscle=Math.min(1,muscle+.025);toast('Protein yedin · Kas gelişimine destek')}else if(inventory.İçecek>0){inventory.İçecek--;toast('İçecek içtin')}else toast('Evde yiyecek yok · BİM’den al');playerRig.mesh.scale.set(1+bodyFat*.12,heightGrowth,1+bodyFat*.12);playerRig.torso.scale.set(1+bodyFat*.2+muscle*.12,1,1+bodyFat*.2+muscle*.12);updateUI();}
 function switchCharacter(){characterIndex=(characterIndex+1)%colors.length;playerRig.torso.material=mat(colors[characterIndex]);toast('Karakter '+(characterIndex+1));updateUI()}
 function nearestCar(){let best=null,dist=18;const flatDistance=c=>Math.hypot(player.position.x-c.mesh.position.x,player.position.z-c.mesh.position.z);for(const c of cars){if(c.police||c.driving||c===currentCar)continue;const d=flatDistance(c);if(d<dist){best=c;dist=d}}if(best)return best;dist=7.5;for(const c of cars){if(c.police||c===currentCar)continue;const d=flatDistance(c);if(d<dist){best=c;dist=d}}return best}
 const jetSkis=[];let currentJetSki=null;
@@ -564,7 +567,7 @@ addEventListener('keydown',e=>{
  keys[e.code]=true;if(e.repeat)return;if(e.code==='Escape'&&mapOpen){toggleMap(false);return}
  if(e.code==='Digit8')switchCharacter();if(!insideBuilding&&e.code==='Digit1')selectWeapon('akm');if(!insideBuilding&&e.code==='Digit2')selectWeapon('pistol');if(!insideBuilding&&e.code==='Digit3')selectWeapon('none');if(e.code==='KeyR'&&!dead&&weaponMode!=='none')reloadWeapon();
  if(e.code==='Digit9'){story=!story;toast(story?'Hikâye modu':'Serbest dolaşım');updateUI()}
- if(e.code==='KeyE')useCar();
+ if(e.code==='KeyE')useCar();if(e.code==='KeyY')eatAtHome();
   if(e.code==='KeyT')shopOrBankAction();
   if(insideBuilding?.label==='MARKET'&&['Digit1','Digit2','Digit3'].includes(e.code))shopOrBankAction(e.code);
  if(e.code==='KeyB')refuel();if(e.code==='KeyV')garageAction();

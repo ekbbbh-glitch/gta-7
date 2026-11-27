@@ -227,7 +227,7 @@ function updateNPCs(dt,t){
    n.attackCd=2.0;n.stun=.22;n.attackAnim=.48;action='punch';
    const toPlayer=player.position.clone().sub(p.position);toPlayer.y=0;const dir=toPlayer.clone().normalize();p.rotation.y=Math.atan2(dir.x,dir.z);
    const forward=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));
-   if(playerAction!=='dodge'&&!guarding&&dir.dot(forward)>-.35){health=Math.max(0,health-8);updateUI()}
+   if(playerAction!=='dodge'&&!guarding){health=Math.max(0,health-8);updateUI()}
   }else if(dist<10&&!currentCar&&!dead){const d=player.position.clone().sub(p.position);d.y=0;d.normalize();p.position.addScaledVector(d,dt*1.5);p.rotation.y=Math.atan2(d.x,d.z);action='walk';moving=true}
   else if(n.kind==='sit'){action='idle'}
   else{p.position.x=n.origin.x+Math.sin(t*n.speed+n.phase)*3;p.position.z=n.origin.z+Math.cos(t*n.speed+n.phase)*2;p.rotation.y=Math.sin(t*n.speed+n.phase);action='walk';moving=true}
@@ -265,7 +265,7 @@ addEventListener('keydown',e=>{
  if(e.code==='KeyC')guarding=true;
  if(e.code==='Space'&&!currentCar&&player.position.y===0)jumpVelocity=7.5;
  if(e.code==='KeyM'&&!dead){money+=100;updateUI()}
- if(e.code==='KeyR'&&dead){dead=false;health=100;wanted=0;player.position.set(0,0,19);player.rotation.set(0,0,0);currentCar=null;document.querySelector('#death-screen')?.remove();updateUI()}
+ if(e.code==='KeyR'&&dead){dead=false;health=100;wanted=0;player.position.set(0,0,19);player.rotation.set(0,0,0);currentCar=null;for(const c of cars.filter(x=>x.police)){scene.remove(c.mesh);cars.splice(cars.indexOf(c),1)}for(const p of footPolice)scene.remove(p.rig.mesh);footPolice.length=0;if(policeHeli){scene.remove(policeHeli.mesh);policeHeli=null;heliRotor=null;heliTailRotor=null}document.querySelector('#death-screen')?.remove();updateUI()}
 });
 addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyC')guarding=false});
 renderer.domElement.addEventListener('click',()=>{if(document.pointerLockElement!==renderer.domElement)renderer.domElement.requestPointerLock?.()});

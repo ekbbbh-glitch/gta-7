@@ -40,16 +40,20 @@ ground(0,-78,260,42,M.sand);ground(0,-113,260,30,M.water);
 
 // Real road surfaces, raised sidewalks, curbs and dashed lane markings.
 function roadHorizontal(z,width=15){
- ground(0,z,260,width,M.road);
- ground(0,z-width/2-2,260,3,M.sidewalk);ground(0,z+width/2+2,260,3,M.sidewalk);
- box(0,.02,z,260,.025,.18,M.line,false);
- for(let x=-126;x<130;x+=12){box(x,.035,z-width*.25,6,.035,.16,M.line,false);box(x,.035,z+width*.25,6,.035,.16,M.line,false)}
+ // Raise road and sidewalk surfaces slightly above the grass to prevent z-fighting.
+ box(0,.04,z,260,.08,width,M.road,false);
+ box(0,.05,z-width/2-2,260,.10,3,M.sidewalk,false);
+ box(0,.05,z+width/2+2,260,.10,3,M.sidewalk,false);
+ box(0,.105,z,260,.025,.18,M.line,false);
+ for(let x=-126;x<130;x+=12){box(x,.125,z-width*.25,6,.025,.16,M.line,false);box(x,.125,z+width*.25,6,.025,.16,M.line,false)}
 }
 function roadVertical(x,width=15){
- ground(x,0,width,260,M.road);
- ground(x-width/2-2,0,3,260,M.sidewalk);ground(x+width/2+2,0,3,260,M.sidewalk);
- box(x,.02,0,.18,.025,260,M.line,false);
- for(let z=-126;z<130;z+=12){box(x-width*.25,.035,z,.16,.035,6,M.line,false);box(x+width*.25,.035,z,.16,.035,6,M.line,false)}
+ // A tiny height offset keeps crossing roads from flickering against each other.
+ box(x,.045,0,width,.08,260,M.road,false);
+ box(x-width/2-2,.055,0,3,.10,260,M.sidewalk,false);
+ box(x+width/2+2,.055,0,3,.10,260,M.sidewalk,false);
+ box(x,.115,0,.18,.025,260,M.line,false);
+ for(let z=-126;z<130;z+=12){box(x-width*.25,.135,z,.16,.025,6,M.line,false);box(x+width*.25,.135,z,.16,.025,6,M.line,false)}
 }
 roadHorizontal(28);roadHorizontal(78);roadVertical(-40);roadVertical(48);
 

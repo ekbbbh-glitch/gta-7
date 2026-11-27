@@ -1,0 +1,13 @@
+import * as THREE from 'three';
+export class Atmosphere{
+ constructor(scene,renderer){this.scene=scene;this.renderer=renderer;this.clock=0;this.rain=false;this.rainGeo=new THREE.BufferGeometry();const pts=new Float32Array(1800*3);for(let i=0;i<1800;i++){pts[i*3]=(Math.random()-.5)*500;pts[i*3+1]=Math.random()*100;pts[i*3+2]=(Math.random()-.5)*500;}this.rainGeo.setAttribute('position',new THREE.BufferAttribute(pts,3));this.rainObj=new THREE.Points(this.rainGeo,new THREE.PointsMaterial({color:0xb8d9ed,size:.16,transparent:true,opacity:.6}));scene.add(this.rainObj);this.rainObj.visible=false;this.sun=new THREE.DirectionalLight(0xffc18e,3);this.sun.position.set(-120,160,-100);this.sun.castShadow=true;this.sun.shadow.mapSize.set(1024,1024);this.sun.shadow.camera.left=-150;this.sun.shadow.camera.right=150;this.sun.shadow.camera.top=150;this.sun.shadow.camera.bottom=-150;scene.add(this.sun);scene.add(new THREE.HemisphereLight(0xc6e6ff,0x57433a,1.2);}
+ update(dt){this.clock+=dt;const phase=(this.clock/180)%1,angle=phase*Math.PI*2-Math.PI/2,e=Math.max(.08,Math.sin(angle));this.sun.position.set(Math.cos(angle)*150,Math.max(8,e*180),-90);this.sun.intensity=.25+e*3;this.scene.background=new THREE.Color().setHSL(.56,.42,.12+e*.42);this.scene.fog.color.copy(this.scene.background);this.scene.fog.near=100;this.scene.fog.far=this.rain?260:620;this.rainObj.visible=this.rain;if(this.rain){const a=this.rainGeo.attributes.position;for(let i=0;i<a.count;i++){let y=a.getY(i)-65*dt;if(y<0)y=90;a.setY(i,y);}a.needsUpdate=true;}}
+ toggleRain(){this.rain=!this.rain;return this.rain;}
+}
+export class Radio{
+ constructor(){this.ctx=null;this.station=0;this.on=false;this.timer=null;this.names=['SOLARA FM · SYNTHWAVE','PALM BEATS · TROPICAL','NIGHT DRIVE · LO-FI'];}
+ start(){if(!this.ctx)this.ctx=new (window.AudioContext||window.webkitAudioContext)();this.on=true;this.play();}
+ play(){if(!this.on||!this.ctx)return;const now=this.ctx.currentTime,notes=[[110,164.8,220,164.8],[130.8,196,261.6,196],[98,146.8,174.6,146.8]][this.station];notes.forEach((f,i)=>{const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=this.station===2?'triangle':'sawtooth';o.frequency.value=f*(i%2?2:1);g.gain.setValueAtTime(.0001,now+i*.23);g.gain.exponentialRampToValueAtTime(.035,now+i*.23+.03);g.gain.exponentialRampToValueAtTime(.0001,now+i*.23+.2);o.connect(g).connect(this.ctx.destination);o.start(now+i*.23);o.stop(now+i*.23+.22);});this.timer=setTimeout(()=>this.play(),1100);}
+ next(){this.station=(this.station+1)%3;if(this.ctx){this.on=false;clearTimeout(this.timer);this.on=true;this.play();}return this.names[this.station];}
+ toggle(){if(!this.ctx)this.start();else{this.on=!this.on;if(this.on)this.play();else clearTimeout(this.timer);}return this.on;}
+}

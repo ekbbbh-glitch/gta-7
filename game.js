@@ -289,20 +289,40 @@ for(let i=0;i<4;i++){const x=-70+i*42;const hull=new THREE.Mesh(new THREE.BoxGeo
 for(let i=0;i<3;i++){const hull=new THREE.Mesh(new THREE.BoxGeometry(8,1.1,3),mat(0xf1eee1));hull.position.set(-168+i*16,.45,-117);scene.add(hull);const cabin=new THREE.Mesh(new THREE.BoxGeometry(2.6,1.8,2),M.white);cabin.position.set(-168+i*16,1.2,-117);scene.add(cabin)}
 
 let currentCar=null,health=100,money=2500,wanted=0,story=false,missionStep=0,dead=false;
+let creditCard=false,creditDebt=0;const creditLimit=5000;let audioContext=null;
 let wantedTimer=0,insideBuilding=null,garageCar=null,cameraMode='third';
 let playerAction='idle',actionTimer=0,attackCooldown=0,dodgeCooldown=0,guarding=false,jumpVelocity=0;
 const keys={};let yaw=0,pitch=.18,clock=new THREE.Clock(),toastTimer;
-
-function toast(s){const el=document.querySelector('#toast');el.textContent=s;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1500)}
+function playSound(type='ui'){
+ try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;if(!audioContext)audioContext=new AC();if(audioContext.state==='suspended')audioContext.resume();const now=audioContext.currentTime;const osc=audioContext.createOscillator(),gain=audioContext.createGain();osc.connect(gain);gain.connect(audioContext.destination);const sounds={ui:[520,.055,'sine'],cash:[880,.11,'triangle'],card:[660,.16,'sine'],error:[150,.18,'sawtooth']};const [freq,duration,wave]=sounds[type]||sounds.ui;osc.type=wave;osc.frequency.setValueAtTime(freq,now);if(type==='cash'||type==='card')osc.frequency.exponentialRampToValueAtTime(freq*1.45,now+duration);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.12,now+.012);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);osc.start(now);osc.stop(now+duration+.02)}catch(err){console.warn('Ses efekti başlatılamadı',err)}
+}
+function toast(s){const el=document.querySelector('#toast');el.textContent=s;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1900);playSound('ui')}
 function updateUI(){
- document.querySelector('#health').textContent=health;document.querySelector('#money').textContent=money;
+ document.querySelector('#health').textContent=health;document.querySelector('#money').textContent=money+(creditDebt>0?' · KART BORCU '+creditDebt:'');
  document.querySelector('#wanted').textContent='★'.repeat(wanted)+'☆'.repeat(5-wanted);
  document.querySelector('#character').textContent='KARAKTER '+(characterIndex+1);
  document.querySelector('#mode').textContent=story?'HİKÂYE MODU':'SERBEST DOLAŞIM';
  document.querySelector('#vehicleHint').textContent=insideBuilding?'E: Binadan çık':(currentCar||currentJetSki)?'E: Araçtan in':'E: Araca bin / binaya gir';
- const vehicleStats=document.querySelector('#vehicleStats');if(vehicleStats)vehicleStats.textContent=currentCar?`${currentCar.name} · BENZİN ${Math.round(currentCar.fuel)}% · HASAR ${100-Math.round(currentCar.condition)}%`:currentJetSki?'JETSKI · DENİZDE':'ARAÇ: YAYA';
+ const vehicleStats=document.querySelector('#vehicleStats');if(vehicleStats)vehicleStats.textContent=currentCar?currentCar.name+' · BENZİN '+Math.round(currentCar.fuel)+'% · HASAR '+(100-Math.round(currentCar.condition))+'%':currentJetSki?'JETSKI · DENİZDE':'ARAÇ: YAYA';
  const area=document.querySelector('#areaLabel');if(area)area.textContent=insideBuilding?insideBuilding.label+' · İÇ MEKÂN':getDistrictName(player.position);
  document.querySelector('#missionText').textContent=story?['Hastane çıkışında kendine gel.','Bankaya git ve görevliyle konuş.','Marketin önüne git.','Şehri keşfetmeye devam et.'][missionStep]:'Hastaneden ayrıl ve Vice City\'yi keşfet.';
+}
+function shopOrBankAction(choice=null){
+ if(!insideBuilding){toast('Önce markete veya bankaya gir');return}
+ if(insideBuilding.label==='BANK'){
+  if(!creditCard){if(money<100){playSound('error');toast('Kart çıkarmak için $100 gerekli');return}money-=100;creditCard=true;playSound('card');toast('BANKA KARTI ÇIKARILDI · Limit $5000')}
+  else if(creditDebt>0){const payment=Math.min(money,creditDebt);if(payment<=0){playSound('error');toast('Borç ödemek için nakit paran yok');return}money-=payment;creditDebt-=payment;playSound('cash');toast('Kredi kartı borcuna '+payment+' $ ödendi')}
+  else toast('Kartın aktif · Borcun yok');
+  updateUI();return;
+ }
+ if(insideBuilding.label!=='MARKET'){toast('Burada alışveriş yapılamaz');return}
+ if(!choice){toast('MARKET · 1: Yiyecek $25 · 2: İçecek $15 · 3: Sağlık kiti $80');return}
+ const goods={Digit1:{name:'Yiyecek',price:25,heal:8},Digit2:{name:'İçecek',price:15,heal:3},Digit3:{name:'Sağlık kiti',price:80,heal:35}};
+ const item=goods[choice];if(!item)return;
+ if(money>=item.price)money-=item.price;
+ else if(creditCard&&creditDebt+item.price<=creditLimit)creditDebt+=item.price;
+ else{playSound('error');toast(creditCard?'Kart limiti yetersiz':'Yetersiz nakit · Bankadan kart çıkar');return}
+ health=Math.min(100,health+item.heal);playSound('cash');toast(item.name+' satın alındı · Sağlık +'+item.heal);updateUI();
 }
 function switchCharacter(){characterIndex=(characterIndex+1)%colors.length;playerRig.torso.material=mat(colors[characterIndex]);toast('Karakter '+(characterIndex+1));updateUI()}
 function nearestCar(){let best=null,dist=18;const flatDistance=c=>Math.hypot(player.position.x-c.mesh.position.x,player.position.z-c.mesh.position.z);for(const c of cars){if(c.police||c.driving||c===currentCar)continue;const d=flatDistance(c);if(d<dist){best=c;dist=d}}if(best)return best;dist=7.5;for(const c of cars){if(c.police||c===currentCar)continue;const d=flatDistance(c);if(d<dist){best=c;dist=d}}return best}
@@ -429,6 +449,8 @@ addEventListener('keydown',e=>{
  if(e.code==='Digit8')switchCharacter();
  if(e.code==='Digit9'){story=!story;toast(story?'Hikâye modu':'Serbest dolaşım');updateUI()}
  if(e.code==='KeyE')useCar();
+  if(e.code==='KeyT')shopOrBankAction();
+  if(insideBuilding?.label==='MARKET'&&['Digit1','Digit2','Digit3'].includes(e.code))shopOrBankAction(e.code);
  if(e.code==='KeyB')refuel();if(e.code==='KeyV')garageAction();
  if(e.code==='KeyP'&&!dead){const b=nearestBuilding();if(b&&b.label==='VILLA'){if(b.owned)toast('Bu ev zaten senin');else if(money>=8000){money-=8000;b.owned=true;toast('Villa satın alındı!');updateUI()}else toast('Villa için $8000 gerekli')}}
  if(e.code==='KeyF')hitNPC(false);

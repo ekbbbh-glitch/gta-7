@@ -87,9 +87,9 @@ function building(x,z,w,d,height,color,label){
   for(const xx of [-w/2+1,w/2-1])localBox(g,xx,2.2,d/2+.35,.32,4,.32,M.white);localBox(g,0,height+.8,0,w*.55,.7,.5,M.pink);
  }else if(label==='BANK'){
   for(const xx of [-w*.34,-w*.17,w*.17,w*.34])localBox(g,xx,2.5,d/2+.25,.55,5,.55,M.white);
-  localBox(g,0,5,d/2+.2,w+.5,.65,.6,mat(0xd2ad5e));localBox(g,0,1.2,d/2+.8,w*.42,.2,1.3,M.white);
+  localBox(g,0,5,d/2+.2,w+.5,.65,.6,mat(0xd2ad5e));localBox(g,0,5.75,d/2+.24,w*.62,.35,.3,mat(0x2d4b5a));localBox(g,0,1.2,d/2+.8,w*.42,.2,1.3,M.white);
  }else if(label==='MARKET'){
-  localBox(g,0,4,d/2+.2,w+.2,.5,.7,M.green);localBox(g,0,4.5,d/2+.2,w+.2,.16,.7,M.red);localBox(g,0,1.9,d/2+.28,w*.7,2.7,.16,M.glass);
+  localBox(g,0,4,d/2+.2,w+.2,.5,.7,M.green);localBox(g,0,4.5,d/2+.2,w+.2,.16,.7,M.red);localBox(g,0,5.25,d/2+.22,w*.55,.75,.18,mat(0xf2dfaa));localBox(g,0,5.25,d/2+.34,w*.42,.12,.08,M.green);localBox(g,0,1.9,d/2+.28,w*.7,2.7,.16,M.glass);
   for(const xx of [-w/2+1,w/2-1])localBox(g,xx,2.2,d/2+.45,.25,4,.25,M.red);
  }else if(label==='VILLA'){
   const roof=localBox(g,0,height+.55,0,w+1,.45,d+1,mat(0x95583e));roof.rotation.z=.035;
@@ -106,6 +106,7 @@ function building(x,z,w,d,height,color,label){
   for(const xx of [-w*.36,w*.36])localBox(g,xx,2.4,d/2+.45,.3,4.2,.3,M.dark);
  }else if(label==='HOUSE'){
   localBox(g,0,height+.45,0,w+1,.55,d+1,mat(0x914f3d));localBox(g,0,2.2,d/2+.65,w*.55,.22,1.5,M.white);localBox(g,-w*.3,1.5,d/2+.2,.18,2.7,.25,M.white);localBox(g,w*.3,1.5,d/2+.2,.18,2.7,.25,M.white);localBox(g,0,1.35,d/2+.2,1.5,2.7,.22,mat(0x543b2d));for(const xx of [-w*.32,w*.32])localBox(g,xx,3.1,d/2+.16,1.6,1.5,.16,M.glass);
+  localBox(g,0,.18,d/2+3.1,w*.62,.28,3.4,M.sidewalk);for(const xx of [-w*.38,w*.38]){const bush=new THREE.Mesh(new THREE.SphereGeometry(.62,9,7),mat(0x34734a));bush.position.set(xx,.65,d/2+2.5);g.add(bush);const flower=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),mat(xx<0?0xe9b3c1:0xe9d36b));flower.position.set(xx,.98,d/2+2.5);g.add(flower)}
  }else{
   for(let xx=-w/2+1;xx<w/2;xx+=3)localBox(g,xx,height*.55,d/2+.12,1.2,height*.72,.12,M.glass);localBox(g,0,height+2,0,1,.9,1,M.dark);
  }

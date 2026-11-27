@@ -144,7 +144,7 @@ for(let i=0;i<4;i++)makeCar(-48+i*32,45,carColors[(i+2)%6],false,0);
 // Boats on the water
 for(let i=0;i<4;i++){const x=-70+i*42;const hull=new THREE.Mesh(new THREE.BoxGeometry(9,1.2,3),mat(0xf1eee1));hull.position.set(x,.4,-103);scene.add(hull);const cabin=new THREE.Mesh(new THREE.BoxGeometry(3,2,2),M.white);cabin.position.set(x,.1,-103);scene.add(cabin)}
 
-let currentCar=null,health=100,money=2500,wanted=0,story=false,missionStep=0;
+let currentCar=null,health=100,money=2500,wanted=0,story=false,missionStep=0,dead=false;
 let playerAction='idle',actionTimer=0,attackCooldown=0,dodgeCooldown=0,guarding=false,jumpVelocity=0;
 const keys={};let yaw=0,pitch=.18,clock=new THREE.Clock(),toastTimer;
 function toast(s){const el=document.querySelector('#toast');el.textContent=s;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1500)}
@@ -165,8 +165,8 @@ function useCar(){
 }
 function startAction(name,duration){if(actionTimer>0)return;playerAction=name;actionTimer=duration}
 function hitNPC(kick=false){
- if(currentCar||attackCooldown>0||playerAction==='dodge')return;
- const target=npcs.filter(n=>n.rig.mesh.position.distanceTo(player.position)<3.4).sort((a,b)=>a.rig.mesh.position.distanceTo(player.position)-b.rig.mesh.position.distanceTo(player.position))[0];
+ if(currentCar||dead||attackCooldown>0||playerAction==='dodge')return;
+ const target=npcs.filter(n=>n.rig.mesh.position.distanceTo(player.position)<2.25).sort((a,b)=>a.rig.mesh.position.distanceTo(player.position)-b.rig.mesh.position.distanceTo(player.position))[0];
  startAction(kick?'kick':'punch',kick?.72:.48);attackCooldown=kick?1.0:.62;
  if(target){target.hp-=kick?48:30;target.stun=.85;const away=target.rig.mesh.position.clone().sub(player.position).normalize();target.rig.mesh.position.addScaledVector(away,kick?2.5:1.5);wanted=Math.min(5,wanted+1);if(target.hp<=0){target.hp=100;target.rig.mesh.position.copy(target.origin);money+=25}updateUI()}
 }
@@ -204,16 +204,19 @@ function updateNPCs(dt,t){
   let action='idle',moving=false;
   if(n.attackAnim>0){action='punch'}
   else if(n.stun>0){action='guard'}
-  else if(dist<3.1&&n.attackCd<=0&&health>0&&!currentCar){
-   n.attackCd=1.7;n.stun=.45;n.attackAnim=.32;health=Math.max(0,health-(playerAction==='dodge'?0:7));action='punch';updateUI();
-   const away=p.position.clone().sub(player.position).normalize();p.position.addScaledVector(away,1.0);
-  }else if(dist<10&&!currentCar){const d=player.position.clone().sub(p.position);d.y=0;d.normalize();p.position.addScaledVector(d,dt*1.5);p.rotation.y=Math.atan2(d.x,d.z);action='walk';moving=true}
+  else if(dist<1.85&&n.attackCd<=0&&health>0&&!currentCar&&!dead){
+   n.attackCd=2.0;n.stun=.22;n.attackAnim=.48;action='punch';
+   const toPlayer=player.position.clone().sub(p.position);toPlayer.y=0;const dir=toPlayer.clone().normalize();p.rotation.y=Math.atan2(dir.x,dir.z);
+   const forward=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));
+   if(playerAction!=='dodge'&&!guarding&&dir.dot(forward)>-.35){health=Math.max(0,health-8);updateUI()}
+  }else if(dist<10&&!currentCar&&!dead){const d=player.position.clone().sub(p.position);d.y=0;d.normalize();p.position.addScaledVector(d,dt*1.5);p.rotation.y=Math.atan2(d.x,d.z);action='walk';moving=true}
   else if(n.kind==='sit'){action='idle'}
   else{p.position.x=n.origin.x+Math.sin(t*n.speed+n.phase)*3;p.position.z=n.origin.z+Math.cos(t*n.speed+n.phase)*2;p.rotation.y=Math.sin(t*n.speed+n.phase);action='walk';moving=true}
   animateRig(n.rig,action,t,moving?.45:0);
  }
 }
 function movePlayer(dt){
+ if(dead)return;
  const running=keys.ShiftLeft||keys.ShiftRight,speed=running?10:6;
  const forward=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw)),right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
  const dir=new THREE.Vector3();
@@ -221,7 +224,7 @@ function movePlayer(dt){
  if(keys.KeyD||keys.ArrowRight)dir.add(right);if(keys.KeyA||keys.ArrowLeft)dir.sub(right);
  if(dir.lengthSq())dir.normalize();
  if(currentCar){
-  if(dir.lengthSq()){currentCar.mesh.position.addScaledVector(dir,speed*1.8*dt);currentCar.mesh.rotation.y=yaw}
+  if(dir.lengthSq()){currentCar.mesh.position.addScaledVector(dir,speed*2.0*dt);currentCar.mesh.rotation.y=Math.atan2(-dir.z,dir.x)}
   player.position.copy(currentCar.mesh.position);player.position.y=-.2;
  }else{
   if(dir.lengthSq()&&playerAction!=='dodge')player.position.addScaledVector(dir,speed*dt);
@@ -242,7 +245,8 @@ addEventListener('keydown',e=>{
  if(e.code==='KeyQ')dodge();
  if(e.code==='KeyC')guarding=true;
  if(e.code==='Space'&&!currentCar&&player.position.y===0)jumpVelocity=7.5;
- if(e.code==='KeyM'){money+=100;updateUI()}
+ if(e.code==='KeyM'&&!dead){money+=100;updateUI()}
+ if(e.code==='KeyR'&&dead){dead=false;health=100;wanted=0;player.position.set(0,0,19);player.rotation.set(0,0,0);currentCar=null;document.querySelector('#death-screen')?.remove();updateUI()}
 });
 addEventListener('keyup',e=>{keys[e.code]=false;if(e.code==='KeyC')guarding=false});
 renderer.domElement.addEventListener('click',()=>{if(document.pointerLockElement!==renderer.domElement)renderer.domElement.requestPointerLock?.()});
@@ -256,6 +260,7 @@ function animate(){
  const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
  attackCooldown=Math.max(0,attackCooldown-dt);dodgeCooldown=Math.max(0,dodgeCooldown-dt);
  if(actionTimer>0){actionTimer-=dt;if(actionTimer<=0)playerAction='idle'}
+ if(health<=0&&!dead){dead=true;const d=document.createElement('div');d.id='death-screen';d.style.cssText='position:fixed;inset:0;z-index:30;background:#05080dcc;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font:900 38px Arial;letter-spacing:4px;text-align:center';d.innerHTML='<div>ÖLDÜN</div><div style="font:600 15px Arial;letter-spacing:1px;margin-top:18px">R tuşuna basarak hastanede yeniden doğ</div>';document.body.appendChild(d)}
  movePlayer(dt);updateNPCs(dt,t);updatePolice(dt);
  for(const c of cars){if(c.driving&&!c.police){
   c.mesh.position.x+=Math.cos(c.rotation)*c.speed*dt;

@@ -111,9 +111,12 @@ const colors=[0x286b9a,0x9a4d71,0x397d5d,0xb0783b];let characterIndex=0;
 const playerRig=person(colors[0]),player=playerRig.mesh;player.position.set(0,0,19);scene.add(player);
 const npcs=[],npcColors=[0x9b684f,0x416c9b,0x76518e,0x4f8b68,0xb18a42,0x9c5550];
 for(let i=0;i<26;i++){
- const rig=person(npcColors[i%npcColors.length]);const angle=i*2.4;
- rig.mesh.position.set(Math.cos(angle)*(16+i%5*3),0,-60+(i%8)*10);scene.add(rig.mesh);
- npcs.push({rig,origin:rig.mesh.position.clone(),phase:Math.random()*6,speed:.4+Math.random()*.5,kind:i%6===0?'sit':'walk',hp:100,attackCd:0,stun:0,attackAnim:0,ang:angle});
+ const rig=person(npcColors[i%npcColors.length]);
+ const route=i%4, lane=route===0?18.5:route===1?37.5:route===2?-49.5:38.5;
+ if(route<2)rig.mesh.position.set(-105+(i*19%210),0,lane);
+ else rig.mesh.position.set(lane,0,-105+(i*17%210));
+ scene.add(rig.mesh);
+ npcs.push({rig,origin:rig.mesh.position.clone(),phase:Math.random()*6,speed:.4+Math.random()*.35,kind:'walk',route,hp:100,attackCd:0,stun:0,attackAnim:0,hostile:false});
 }
 
 // Vehicles point along their local +X axis. Their rotation is aligned to the road.
@@ -168,7 +171,7 @@ function hitNPC(kick=false){
  if(currentCar||dead||attackCooldown>0||playerAction==='dodge')return;
  const target=npcs.filter(n=>n.rig.mesh.position.distanceTo(player.position)<2.25).sort((a,b)=>a.rig.mesh.position.distanceTo(player.position)-b.rig.mesh.position.distanceTo(player.position))[0];
  startAction(kick?'kick':'punch',kick?.72:.48);attackCooldown=kick?1.0:.62;
- if(target){target.hp-=kick?48:30;target.stun=.85;const away=target.rig.mesh.position.clone().sub(player.position).normalize();target.rig.mesh.position.addScaledVector(away,kick?2.5:1.5);wanted=Math.min(5,wanted+1);if(target.hp<=0){target.hp=100;target.rig.mesh.position.copy(target.origin);money+=25}updateUI()}
+ if(target){target.hostile=true;target.hp-=kick?48:30;target.stun=.85;const away=target.rig.mesh.position.clone().sub(player.position).normalize();target.rig.mesh.position.addScaledVector(away,kick?2.5:1.5);wanted=Math.min(5,wanted+1);if(target.hp<=0){target.hp=100;target.rig.mesh.position.copy(target.origin);money+=25}updateUI()}
 }
 function dodge(){if(dodgeCooldown>0||currentCar)return;startAction('dodge',.55);dodgeCooldown=1.25;const side=keys.KeyA?-1:1;player.position.x+=Math.cos(yaw)*side*2.3;player.position.z-=Math.sin(yaw)*side*2.3}
 function animateRig(rig,action,t,moveAmount=0){
@@ -223,14 +226,18 @@ function updateNPCs(dt,t){
   let action='idle',moving=false;
   if(n.attackAnim>0){action='punch'}
   else if(n.stun>0){action='guard'}
-  else if(dist<1.85&&n.attackCd<=0&&health>0&&!currentCar&&!dead){
+  else if(n.hostile&&dist<1.65&&n.attackCd<=0&&health>0&&!currentCar&&!dead){
    n.attackCd=2.0;n.stun=.22;n.attackAnim=.48;action='punch';
    const toPlayer=player.position.clone().sub(p.position);toPlayer.y=0;const dir=toPlayer.clone().normalize();p.rotation.y=Math.atan2(dir.x,dir.z);
    const forward=new THREE.Vector3(Math.sin(player.rotation.y),0,Math.cos(player.rotation.y));
    if(playerAction!=='dodge'&&!guarding){health=Math.max(0,health-8);updateUI()}
-  }else if(dist<10&&!currentCar&&!dead){const d=player.position.clone().sub(p.position);d.y=0;d.normalize();p.position.addScaledVector(d,dt*1.5);p.rotation.y=Math.atan2(d.x,d.z);action='walk';moving=true}
-  else if(n.kind==='sit'){action='idle'}
-  else{p.position.x=n.origin.x+Math.sin(t*n.speed+n.phase)*3;p.position.z=n.origin.z+Math.cos(t*n.speed+n.phase)*2;p.rotation.y=Math.sin(t*n.speed+n.phase);action='walk';moving=true}
+  }else if(n.hostile&&dist<12&&!currentCar&&!dead){const d=player.position.clone().sub(p.position);d.y=0;d.normalize();p.position.addScaledVector(d,dt*1.25);p.rotation.y=Math.atan2(d.x,d.z);action='walk';moving=true}
+  else{
+   const offset=Math.sin(t*n.speed+n.phase)*17;
+   if(n.route<2){p.position.x=n.origin.x+offset;p.position.z=n.origin.z;p.rotation.y=offset>=0?Math.PI/2:-Math.PI/2}
+   else{p.position.x=n.origin.x;p.position.z=n.origin.z+offset;p.rotation.y=offset>=0?0:Math.PI}
+   action='walk';moving=true;
+  }
   animateRig(n.rig,action,t,moving?.45:0);
  }
 }
@@ -275,7 +282,18 @@ addEventListener('mouseup',e=>{if(e.button===2)guarding=false});
 addEventListener('contextmenu',e=>e.preventDefault());
 
 const streetLights=[];
-for(const [x,z] of [[-105,-52],[-55,-52],[0,-52],[55,-52],[105,-52],[-105,55],[-55,55],[0,55],[55,55],[105,55]]){const l=new THREE.PointLight(0xffdca0,0,34,2);l.position.set(x,5.7,z);scene.add(l);streetLights.push(l)}
+for(const [x,z,vertical] of [
+ [-105,18.5,false],[-55,18.5,false],[0,18.5,false],[55,18.5,false],[105,18.5,false],
+ [-105,37.5,false],[-55,37.5,false],[0,37.5,false],[55,37.5,false],[105,37.5,false],
+ [-49.5,-95,true],[-49.5,-45,true],[-49.5,5,true],[-49.5,55,true],
+ [38.5,-95,true],[38.5,-45,true],[38.5,5,true],[38.5,55,true]
+]){
+ const pole=new THREE.Mesh(new THREE.CylinderGeometry(.11,.15,6,8),M.dark);pole.position.set(x,3,z);scene.add(pole);
+ const arm=new THREE.Mesh(new THREE.BoxGeometry(vertical?1.2:.0+1.2,.12,.12),M.dark);arm.position.set(x+(vertical?.55:0),5.85,z+(vertical?0:.55));scene.add(arm);
+ const head=new THREE.Mesh(new THREE.BoxGeometry(.75,.22,.48),M.chrome);head.position.set(x+(vertical?1.05:0),5.75,z+(vertical?0:1.05));scene.add(head);
+ const bulb=new THREE.Mesh(new THREE.SphereGeometry(.22,10,8),mat(0xffe4a8,.25));bulb.position.set(head.position.x,5.55,head.position.z);scene.add(bulb);
+ const l=new THREE.PointLight(0xffdca0,0,27,2);l.position.set(head.position.x,5.4,head.position.z);scene.add(l);streetLights.push(l);
+}
 const daySky=new THREE.Color(0x8fc8d8),nightSky=new THREE.Color(0x071326),dayFog=new THREE.Color(0x8fc8d8),nightFog=new THREE.Color(0x101d35);
 function updateDayNight(t){const phase=(t/180)%(Math.PI*2),h=Math.sin(phase),day=THREE.MathUtils.smoothstep(h,-.18,.28);
 sun.position.set(Math.cos(phase)*90,Math.max(-15,h*100),Math.sin(phase)*60);sun.intensity=.12+day*2.9;

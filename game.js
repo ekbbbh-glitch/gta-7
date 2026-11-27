@@ -195,7 +195,7 @@ function calisthenicsPark(x,z){
  for(const xx of [-13,0,13]){for(const side of [-1,1])box(x+xx+side*1.2,1.5,z+7,.18,3,.18,M.red);box(x+xx,3,z+7,2.6,.16,.16,M.chrome)}
  for(let i=0;i<4;i++){const plate=new THREE.Mesh(new THREE.CylinderGeometry(.62,.62,.18,16),M.dark);plate.rotation.x=Math.PI/2;plate.position.set(x-17+i*11,.7,z+12);scene.add(plate)}
 }
-playground(100,-100);calisthenicsPark(25,-105);
+playground(100,-55);calisthenicsPark(25,-60);
 function rockyHill(x,z,r,h){
  const peak=new THREE.Mesh(new THREE.ConeGeometry(r,h,7,3),mat(0x77736b,.98));peak.position.set(x,h/2-.2,z);peak.rotation.y=.3;peak.castShadow=true;scene.add(peak);
  for(let i=0;i<10;i++){const a=i*Math.PI*2/10,rr=r*(.48+Math.random()*.38),rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.8+Math.random()*1.8,0),mat([0x77736b,0x625f59,0x8a8274][i%3],1));rock.position.set(x+Math.cos(a)*rr,.2+Math.random()*1.4,z+Math.sin(a)*rr);rock.rotation.set(Math.random(),Math.random(),Math.random());rock.scale.y=.6+Math.random()*.8;rock.castShadow=true;scene.add(rock)}
@@ -585,7 +585,7 @@ function drawWorldMap(){
  c.fillStyle='#f1d7a0';c.font='bold 13px Arial';c.fillText('KÖPRÜ',bridge.x+14,worldToMap(-225,-200).y);
  c.font='bold 12px Arial';
  for(const b of cityBuildings){const p=worldToMap(b.x,b.z);c.fillStyle=b.label==='BANK'?'#ffe16b':b.label==='MARKET'?'#8df0b0':'#e8e8df';c.fillRect(p.x-5,p.y-5,10,10);if(['BANK','MARKET','HOTEL','PORT','AIRPORT','GARAGE','HOSPITAL','GYM'].includes(b.label))c.fillText(b.label,p.x+8,p.y-7)}
- const sea=worldToMap(-180,-170);c.fillStyle='#d2f4ff';c.fillText('DENİZ / MARİNA',sea.x,sea.y);const park=worldToMap(100,-100);c.fillStyle='#d5f07b';c.fillText('ÇOCUK PARKI',park.x,park.y);const cal=worldToMap(25,-105);c.fillText('CALISTHENICS',cal.x,cal.y);
+ const sea=worldToMap(-180,-170);c.fillStyle='#d2f4ff';c.fillText('DENİZ / MARİNA',sea.x,sea.y);const park=worldToMap(100,-55);c.fillStyle='#d5f07b';c.fillText('ÇOCUK PARKI',park.x,park.y);const cal=worldToMap(25,-60);c.fillText('CALISTHENICS',cal.x,cal.y);
  if(routePoints.length>1){c.strokeStyle='#c45bff';c.lineWidth=7;c.lineJoin='round';c.beginPath();routePoints.forEach((p,i)=>{const q=worldToMap(p.x,p.z);i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y)});c.stroke()}
  if(destination){const p=worldToMap(destination.x,destination.z);c.fillStyle='#d75cff';c.beginPath();c.arc(p.x,p.y,10,0,Math.PI*2);c.fill();c.fillStyle='#fff';c.fillText('HEDEF',p.x+12,p.y-10)}
  const me=worldToMap(player.position.x,player.position.z);c.fillStyle='#fff36a';c.beginPath();c.arc(me.x,me.y,8,0,Math.PI*2);c.fill();c.strokeStyle='#16232b';c.lineWidth=3;c.stroke();

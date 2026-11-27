@@ -331,8 +331,10 @@ const miniMap=document.createElement('canvas');miniMap.width=180;miniMap.height=
 miniMap.style.cssText='position:fixed;left:18px;bottom:48px;width:150px;height:150px;border:2px solid #e8d79a;border-radius:50%;background:#142b36cc;z-index:5;pointer-events:none';document.body.appendChild(miniMap);
 const miniCtx=miniMap.getContext('2d');
 function drawMiniMap(){const c=miniCtx;c.clearRect(0,0,180,180);c.fillStyle='#153c48';c.fillRect(0,0,180,180);
-c.fillStyle='#a7a99b';c.fillRect(0,0,180,180);c.fillStyle='#303941';c.fillRect(0,55,180,12);c.fillRect(0,105,180,12);c.fillRect(48,0,12,180);c.fillRect(112,0,12,180);
-c.strokeStyle='#f4e8c5';c.setLineDash([6,5]);c.lineWidth=1;c.beginPath();c.moveTo(0,61);c.lineTo(180,61);c.moveTo(0,111);c.lineTo(180,111);c.moveTo(54,0);c.lineTo(54,180);c.moveTo(118,0);c.lineTo(118,180);c.stroke();c.setLineDash([]);
+c.fillStyle='#a7a99b';c.fillRect(0,0,180,180);c.fillStyle='#303941';
+c.fillRect(0,102,180,7);c.fillRect(0,123,180,7);c.fillRect(0,145,180,7);c.fillRect(73,0,7,180);c.fillRect(111,0,7,180);c.fillRect(154,0,7,180);
+c.fillStyle='#d2d5d1';c.fillRect(128,154,50,12);c.fillStyle='#775a3f';c.fillRect(22,35,8,22);
+c.strokeStyle='#f4e8c5';c.setLineDash([5,5]);c.lineWidth=1;c.beginPath();c.moveTo(0,105);c.lineTo(180,105);c.moveTo(0,126);c.lineTo(180,126);c.moveTo(0,148);c.lineTo(180,148);c.moveTo(76,0);c.lineTo(76,180);c.moveTo(114,0);c.lineTo(114,180);c.moveTo(157,0);c.lineTo(157,180);c.stroke();c.setLineDash([]);
 const px=90+(player.position.x/420)*180,py=90+(player.position.z/420)*180;c.fillStyle='#f8e16a';c.beginPath();c.arc(px,py,5,0,Math.PI*2);c.fill();
 for(const p of footPolice){const x=90+(p.rig.mesh.position.x/420)*180,y=90+(p.rig.mesh.position.z/420)*180;c.fillStyle='#ff554d';c.beginPath();c.arc(x,y,3.5,0,Math.PI*2);c.fill()}
 for(const p of cars.filter(x=>x.police)){const x=90+(p.mesh.position.x/420)*180,y=90+(p.mesh.position.z/420)*180;c.fillStyle='#ff554d';c.fillRect(x-3,y-3,6,6)}

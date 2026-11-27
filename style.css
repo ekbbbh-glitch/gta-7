@@ -9,3 +9,6 @@
 #vehicleStats,#areaLabel{color:#ffdb78} .bottom{gap:12px;flex-wrap:wrap} .help{max-height:65vh;overflow:auto}
 
 #vehicleStats,#areaLabel{color:#ffdb78}.bottom{gap:12px;flex-wrap:wrap}.help{max-height:65vh;overflow:auto}
+
+#world-map-panel{backdrop-filter:blur(12px)}
+@media(max-width:650px){#world-map-panel{inset:2vh 2vw!important;padding:8px!important}#world-map-panel>div:first-child{gap:8px;font-size:10px}#world-map-panel>div:first-child b{font-size:15px!important}#world-map{height:calc(100% - 42px)!important}}

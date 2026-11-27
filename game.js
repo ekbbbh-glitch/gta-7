@@ -141,12 +141,12 @@ function makeCar(x,z,color,driving=false,rotation=0,police=false){
  const car={mesh:g,driving,speed:driving?5+Math.random()*3:0,rotation,police};cars.push(car);return car;
 }
 // Two-way lanes on the main avenues; vertical roads have cars turned 90 degrees.
-for(let i=0;i<10;i++)makeCar(-112+i*23,25.4,carColors[i%6],i%3===0,0);
-for(let i=0;i<9;i++)makeCar(110-i*25,30.6,carColors[(i+2)%6],i%3===0,Math.PI);
-for(let i=0;i<8;i++)makeCar(-110+i*30,75.4,carColors[(i+3)%6],i%2===0,0);
-for(let i=0;i<8;i++)makeCar(-40.6,-105+i*30,carColors[i%6],i%3===0,Math.PI/2);
-for(let i=0;i<8;i++)makeCar(48.6,-105+i*30,carColors[(i+1)%6],i%3===0,-Math.PI/2);
-for(let i=0;i<4;i++)makeCar(-48+i*32,45,carColors[(i+2)%6],false,0);
+for(let i=0;i<10;i++)makeCar(-112+i*23,25.4,carColors[i%6],true,0);
+for(let i=0;i<9;i++)makeCar(110-i*25,30.6,carColors[(i+2)%6],true,Math.PI);
+for(let i=0;i<8;i++)makeCar(-110+i*30,75.4,carColors[(i+3)%6],true,0);
+for(let i=0;i<8;i++)makeCar(-40.6,-105+i*30,carColors[i%6],true,Math.PI/2);
+for(let i=0;i<8;i++)makeCar(48.6,-105+i*30,carColors[(i+1)%6],true,-Math.PI/2);
+// Parked vehicles are kept off the active roadway.\nfor(let i=0;i<4;i++)makeCar(-48+i*32,45,carColors[(i+2)%6],false,0);
 
 // Boats on the water
 for(let i=0;i<4;i++){const x=-70+i*42;const hull=new THREE.Mesh(new THREE.BoxGeometry(9,1.2,3),mat(0xf1eee1));hull.position.set(x,.4,-103);scene.add(hull);const cabin=new THREE.Mesh(new THREE.BoxGeometry(3,2,2),M.white);cabin.position.set(x,.1,-103);scene.add(cabin)}

@@ -104,6 +104,7 @@ function building(x,z,w,d,height,color,label){
  }else{
   for(let xx=-w/2+1;xx<w/2;xx+=3)localBox(g,xx,height*.55,d/2+.12,1.2,height*.72,.12,M.glass);localBox(g,0,height+2,0,1,.9,1,M.dark);
  }
+ g.position.set(x,0,z); // Keep every building at its own city coordinates.
  const record={mesh:g,x,z,width:w,depth:d,label,door:new THREE.Vector3(x,0,z+d/2+2.4),exit:new THREE.Vector3(x,0,z+d/2+4.5),interior:null,owned:false};cityBuildings.push(record);g.userData.building=record;return g;
 }
 building(-25,-2,15,18,19,0xd5b6a1,'HOTEL');
@@ -114,7 +115,7 @@ for(let i=0;i<10;i++){const x=-95+i*21;building(x,-38-(i%2)*7,13,13,15+(i%4)*5,[
 building(94,-4,20,19,34,0xb8c8cf,'DOWNTOWN');building(100,47,18,18,25,0xd7c2a5,'HOTEL');
 building(170,112,38,18,13,0xd8e0dd,'AIRPORT');building(116,145,22,18,9,0xb9c5c9,'GARAGE');building(-160,-55,24,18,11,0xd2d5ca,'PORT');
 function createInterior(b,index){
- const room=new THREE.Group();room.position.set(500+index*26,0,0);scene.add(room);room.userData.name=b.label;
+ const room=new THREE.Group();room.position.set(200+(index%5)*24,0,190+Math.floor(index/5)*24);scene.add(room);room.userData.name=b.label;
  const floors={HOTEL:0x8c7a70,MARKET:0xb9b4a0,BANK:0x8f9a9a,VILLA:0x957b68,AIRPORT:0x9ca9ac,GARAGE:0x565f64,PORT:0x7d7569,DOWNTOWN:0x687985};
  const floorMat=mat(floors[b.label]||0xaaa69e,.72),wood=mat(0x79533a),metal=mat(0x66727a,.42,.45),leather=mat(0x36505a);
  localBox(room,0,-.15,0,18,.3,14,floorMat);localBox(room,0,3.1,-7,18,6.2,.35,mat(b.label==='BANK'?0x52606a:0xe3ded2));
@@ -282,7 +283,7 @@ function useCar(){
  const dc=c?player.position.distanceTo(c.mesh.position):Infinity,ds=ski?player.position.distanceTo(ski.mesh.position):Infinity,db=door?player.position.distanceTo(door.door):Infinity;
  if(c&&dc<=ds&&dc<=db){currentCar=c;toast(c.name+' aracına bindin')}
  else if(ski&&ds<=db){currentJetSki=ski;toast('Jetskiye bindin')}
- else if(door){insideBuilding=door;player.position.set(door.interior.position.x,0,0);camera.position.set(player.position.x,3.2,4.2);camera.lookAt(player.position.x,1.25,0);toast(door.label+' içine girdin · E ile çık')}
+ else if(door){insideBuilding=door;player.position.set(door.interior.position.x,0,door.interior.position.z);camera.position.set(player.position.x,3.2,player.position.z+4.2);camera.lookAt(player.position.x,1.25,player.position.z);toast(door.label+' içine girdin · E ile çık')}
  else toast('Yakında araç, jetski veya bina kapısı yok');
  updateUI();
 }
@@ -384,7 +385,7 @@ function movePlayer(dt){
   const action=actionTimer>0?playerAction:(guarding?'guard':dir.lengthSq()?(running?'run':'walk'):'idle');
   animateRig(playerRig,action,clock.elapsedTime,dir.lengthSq()?1:0);
  }
- if(insideBuilding){player.position.x=THREE.MathUtils.clamp(player.position.x,insideBuilding.interior.position.x-7.5,insideBuilding.interior.position.x+7.5);player.position.z=THREE.MathUtils.clamp(player.position.z,-5.5,5.5)}else{player.position.x=THREE.MathUtils.clamp(player.position.x,-350,350);player.position.z=THREE.MathUtils.clamp(player.position.z,-350,350)}
+ if(insideBuilding){player.position.x=THREE.MathUtils.clamp(player.position.x,insideBuilding.interior.position.x-7.5,insideBuilding.interior.position.x+7.5);player.position.z=THREE.MathUtils.clamp(player.position.z,insideBuilding.interior.position.z-5.5,insideBuilding.interior.position.z+5.5)}else{player.position.x=THREE.MathUtils.clamp(player.position.x,-350,350);player.position.z=THREE.MathUtils.clamp(player.position.z,-350,350)}
 }
 addEventListener('keydown',e=>{
  keys[e.code]=true;if(e.repeat)return;

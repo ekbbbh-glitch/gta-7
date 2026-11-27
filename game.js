@@ -120,6 +120,7 @@ function createInterior(b,index){
  localBox(room,0,-.15,0,18,.3,14,floorMat);localBox(room,0,3.1,-7,18,6.2,.35,mat(b.label==='BANK'?0x52606a:0xe3ded2));
  localBox(room,-9,3.1,0,.35,6.2,14,M.white);localBox(room,9,3.1,0,.35,6.2,14,M.white);
  localBox(room,-5,3.1,7,8,6.2,.35,M.white);localBox(room,5,3.1,7,8,6.2,.35,M.white);localBox(room,0,5.9,0,18,.2,14,mat(0x353b44));
+ const ceilingLamp=new THREE.PointLight(0xffe5bc,1.8,24,2);ceilingLamp.position.set(0,5.2,0);room.add(ceilingLamp);
  if(b.label==='HOTEL'){
   localBox(room,0,.65,-4,7,1.3,1.4,wood);localBox(room,0,1.4,-4,6.7,.25,1.25,M.white);
   localBox(room,-5,.55,-1,3,.9,1.5,leather);localBox(room,5,.55,-1,3,.9,1.5,leather);for(let x=-6;x<=6;x+=3)localBox(room,x,2.6,-6,.9,1.5,.12,M.glass);
@@ -274,14 +275,14 @@ function nearestJetSki(){let best=null,distance=6;for(const ski of jetSkis){cons
 function getDistrictName(p){if(p.x<-140&&p.z<-250)return 'ADA / TATİL BÖLGESİ';if(p.x>130&&p.z>95)return 'HAVALİMANI';if(p.x>70&&p.z>80)return 'SANAYİ / GARAJ';if(p.x<-125&&p.z<-35)return 'LİMAN';if(p.z<-85)return 'SAHİL';if(p.x>75)return 'ŞEHİR MERKEZİ';if(p.z>85)return 'KONUT BÖLGESİ';return 'VICE CITY';}
 function nearestBuilding(){let best=null,distance=6.2;for(const b of cityBuildings){const d=player.position.distanceTo(b.door);if(d<distance){best=b;distance=d}}return best;}
 function useCar(){
- if(insideBuilding){player.position.copy(insideBuilding.exit);insideBuilding=null;toast('Binadan çıktın');updateUI();return}
+ if(insideBuilding){player.position.copy(insideBuilding.exit);insideBuilding=null;const camDistance=10.5;camera.position.set(player.position.x+Math.sin(yaw)*camDistance,player.position.y+5.7+pitch*8,player.position.z+Math.cos(yaw)*camDistance);camera.lookAt(player.position.x,player.position.y+1.25,player.position.z);toast('Binadan çıktın');updateUI();return}
  if(currentCar){player.position.copy(currentCar.mesh.position);player.position.x+=3;currentCar=null;toast('Araçtan indin');updateUI();return}
  if(currentJetSki){player.position.copy(currentJetSki.mesh.position);player.position.x+=2.5;currentJetSki=null;toast('Jetskiden indin');updateUI();return}
  const c=nearestCar(),ski=nearestJetSki(),door=nearestBuilding();
  const dc=c?player.position.distanceTo(c.mesh.position):Infinity,ds=ski?player.position.distanceTo(ski.mesh.position):Infinity,db=door?player.position.distanceTo(door.door):Infinity;
  if(c&&dc<=ds&&dc<=db){currentCar=c;toast(c.name+' aracına bindin')}
  else if(ski&&ds<=db){currentJetSki=ski;toast('Jetskiye bindin')}
- else if(door){insideBuilding=door;player.position.set(door.interior.position.x,0,0);toast(door.label+' içine girdin · E ile çık')}
+ else if(door){insideBuilding=door;player.position.set(door.interior.position.x,0,0);camera.position.set(player.position.x,3.2,4.2);camera.lookAt(player.position.x,1.25,0);toast(door.label+' içine girdin · E ile çık')}
  else toast('Yakında araç, jetski veya bina kapısı yok');
  updateUI();
 }
@@ -455,7 +456,7 @@ function animate(){
  }}
  const target=currentCar?currentCar.mesh.position:currentJetSki?currentJetSki.mesh.position:player.position;
  player.visible=cameraMode!=='first';
- if(cameraMode==='first'){const eyeY=currentCar?1.95:currentJetSki?1.65:1.68;camera.position.lerp(new THREE.Vector3(target.x,target.y+eyeY,target.z),1-Math.pow(.00001,dt));camera.lookAt(target.x-Math.sin(yaw)*14,target.y+eyeY,target.z-Math.cos(yaw)*14)}
+ if(cameraMode==='first'){const eyeY=currentCar?1.95:currentJetSki?1.65:1.68;camera.position.lerp(new THREE.Vector3(target.x,target.y+eyeY,target.z),1-Math.pow(.00001,dt));camera.lookAt(target.x-Math.sin(yaw)*Math.cos(pitch)*14,target.y+eyeY+Math.sin(pitch)*14,target.z-Math.cos(yaw)*Math.cos(pitch)*14)}
  else{const distance=insideBuilding?4.2:10.5,height=insideBuilding?3.2:5.7;const desired=new THREE.Vector3(target.x+Math.sin(yaw)*distance,target.y+height+pitch*8,target.z+Math.cos(yaw)*distance);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target.x,target.y+1.25,target.z)}
  renderer.render(scene,camera);
 }

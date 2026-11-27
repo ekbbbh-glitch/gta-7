@@ -163,7 +163,7 @@ function createInterior(b,index){
  b.interior=room;
 }
 cityBuildings.forEach(createInterior);
-homeRecord=cityBuildings.find(b=>b.label==='HOUSE'&&b.x===-312&&b.z===98)||cityBuildings.find(b=>b.label==='HOUSE');if(homeRecord){homeRecord.owned=true;homeRecord.isHome=true;}
+
 
 // Sea bridge and new resort island.
 const bridgeX=-225;box(bridgeX,.53,-187,16,.46,198,mat(0x30383e),false);box(bridgeX,.775,-187,.22,.025,198,M.line,false);
@@ -401,6 +401,7 @@ for(let i=0;i<3;i++){const hull=new THREE.Mesh(new THREE.BoxGeometry(8,1.1,3),ma
 
 let currentCar=null,health=100,money=2500,wanted=0,story=false,missionStep=0,dead=false;let activeJob=null;
 let creditCard=false,creditDebt=0;const creditLimit=5000;let audioContext=null;
+homeRecord=cityBuildings.find(b=>b.label==='HOUSE'&&b.x===-312&&b.z===98)||cityBuildings.find(b=>b.label==='HOUSE');if(homeRecord){homeRecord.owned=true;homeRecord.isHome=true;}
 const inventory={Yiyecek:0,İçecek:0,Protein:0},homePantry={Yiyecek:0,İçecek:0,Protein:0};let bodyFat=0,muscle=0,heightGrowth=1,homeRecord=null;
 let wantedTimer=0,insideBuilding=null,garageCar=null,cameraMode='third';
 let playerAction='idle',actionTimer=0,attackCooldown=0,dodgeCooldown=0,guarding=false,jumpVelocity=0;

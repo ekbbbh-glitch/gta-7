@@ -260,8 +260,8 @@ function updateUI(){
  document.querySelector('#wanted').textContent='★'.repeat(wanted)+'☆'.repeat(5-wanted);
  document.querySelector('#character').textContent='KARAKTER '+(characterIndex+1);
  document.querySelector('#mode').textContent=story?'HİKÂYE MODU':'SERBEST DOLAŞIM';
- document.querySelector('#vehicleHint').textContent=insideBuilding?'E: Binadan çık':currentCar?'E: Araçtan in':'E: Araca bin / binaya gir';
- const vehicleStats=document.querySelector('#vehicleStats');if(vehicleStats)vehicleStats.textContent=currentCar?`BENZİN ${Math.round(currentCar.fuel)}% · HASAR ${100-Math.round(currentCar.condition)}%`:'ARAÇ: YAYA';
+ document.querySelector('#vehicleHint').textContent=insideBuilding?'E: Binadan çık':(currentCar||currentJetSki)?'E: Araçtan in':'E: Araca bin / binaya gir';
+ const vehicleStats=document.querySelector('#vehicleStats');if(vehicleStats)vehicleStats.textContent=currentCar?`${currentCar.name} · BENZİN ${Math.round(currentCar.fuel)}% · HASAR ${100-Math.round(currentCar.condition)}%`:currentJetSki?'JETSKI · DENİZDE':'ARAÇ: YAYA';
  const area=document.querySelector('#areaLabel');if(area)area.textContent=insideBuilding?insideBuilding.label+' · İÇ MEKÂN':getDistrictName(player.position);
  document.querySelector('#missionText').textContent=story?['Hastane çıkışında kendine gel.','Bankaya git ve görevliyle konuş.','Marketin önüne git.','Şehri keşfetmeye devam et.'][missionStep]:'Hastaneden ayrıl ve Vice City\'yi keşfet.';
 }
@@ -271,7 +271,7 @@ const jetSkis=[];let currentJetSki=null;
 function makeJetSki(x,z,color){const g=new THREE.Group();const hull=new THREE.Mesh(new THREE.BoxGeometry(3.4,.55,1.22),mat(color,.36,.1));hull.position.y=.55;g.add(hull);const nose=new THREE.Mesh(new THREE.ConeGeometry(.62,1.4,4),mat(color,.36,.1));nose.rotation.z=-Math.PI/2;nose.position.set(1.85,.58,0);g.add(nose);const seat=new THREE.Mesh(new THREE.BoxGeometry(1.25,.42,.72),mat(0x171c22));seat.position.set(-.25,1,0);g.add(seat);const handle=new THREE.Mesh(new THREE.BoxGeometry(.18,.16,1.05),M.chrome);handle.position.set(.85,1.12,0);g.add(handle);g.position.set(x,.15,z);scene.add(g);const ski={mesh:g};jetSkis.push(ski);return ski;}
 for(let i=0;i<5;i++)makeJetSki(-90+i*32,-155,[0xe64b3e,0x247ba0,0xe2c846,0xf1f2ed,0x3ca77c][i]);
 function nearestJetSki(){let best=null,distance=6;for(const ski of jetSkis){const d=player.position.distanceTo(ski.mesh.position);if(d<distance){best=ski;distance=d}}return best;}
-function getDistrictName(p){if(p.x>130&&p.z>95)return 'HAVALİMANI';if(p.x>70&&p.z>80)return 'SANAYİ / GARAJ';if(p.x<-125&&p.z<-35)return 'LİMAN';if(p.z<-85)return 'SAHİL';if(p.x>75)return 'ŞEHİR MERKEZİ';if(p.z>85)return 'KONUT BÖLGESİ';return 'VICE CITY';}
+function getDistrictName(p){if(p.x<-140&&p.z<-250)return 'ADA / TATİL BÖLGESİ';if(p.x>130&&p.z>95)return 'HAVALİMANI';if(p.x>70&&p.z>80)return 'SANAYİ / GARAJ';if(p.x<-125&&p.z<-35)return 'LİMAN';if(p.z<-85)return 'SAHİL';if(p.x>75)return 'ŞEHİR MERKEZİ';if(p.z>85)return 'KONUT BÖLGESİ';return 'VICE CITY';}
 function nearestBuilding(){let best=null,distance=6.2;for(const b of cityBuildings){const d=player.position.distanceTo(b.door);if(d<distance){best=b;distance=d}}return best;}
 function useCar(){
  if(insideBuilding){player.position.copy(insideBuilding.exit);insideBuilding=null;toast('Binadan çıktın');updateUI();return}
@@ -454,6 +454,7 @@ function animate(){
   if(Math.abs(c.mesh.position.z)>365)c.mesh.position.z=-Math.sign(c.mesh.position.z)*365;
  }}
  const target=currentCar?currentCar.mesh.position:currentJetSki?currentJetSki.mesh.position:player.position;
+ player.visible=cameraMode!=='first';
  if(cameraMode==='first'){const eyeY=currentCar?1.95:currentJetSki?1.65:1.68;camera.position.lerp(new THREE.Vector3(target.x,target.y+eyeY,target.z),1-Math.pow(.00001,dt));camera.lookAt(target.x-Math.sin(yaw)*14,target.y+eyeY,target.z-Math.cos(yaw)*14)}
  else{const distance=insideBuilding?4.2:10.5,height=insideBuilding?3.2:5.7;const desired=new THREE.Vector3(target.x+Math.sin(yaw)*distance,target.y+height+pitch*8,target.z+Math.cos(yaw)*distance);camera.position.lerp(desired,1-Math.pow(.001,dt));camera.lookAt(target.x,target.y+1.25,target.z)}
  renderer.render(scene,camera);

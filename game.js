@@ -200,7 +200,7 @@ function neonLamp(x,z,color=0xffd58a){
  const pole=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,7,8),M.dark);pole.position.set(x,3.5,z);scene.add(pole);
  const arm=new THREE.Mesh(new THREE.BoxGeometry(2.2,.14,.14),M.dark);arm.position.set(x+1,6.8,z);scene.add(arm);
  const bulb=new THREE.Mesh(new THREE.BoxGeometry(.8,.22,.5),mat(color,.22,.1));bulb.position.set(x+1.8,6.65,z);scene.add(bulb);
- const light=new THREE.PointLight(color,1.35,24,2);light.position.set(x+1.8,6.2,z);scene.add(light);streetLights.push(light);
+ const light=new THREE.PointLight(color,1.35,24,2);light.position.set(x+1.8,6.2,z);scene.add(light);// Bu meydan ışıkları sabit yanar; gece döngüsüne bağlı sokak ışıklarından ayrı.
 }
 for(const z of [28,78,128,178,228])for(let x=-210;x<=220;x+=35)if(Math.abs(x+40)>11&&Math.abs(x-48)>11&&Math.abs(x-150)>11&&Math.abs(x-220)>11)neonLamp(x,z,z===128?0x80dfff:0xffd58a);
 for(const x of [-40,48,150,220])for(let z=-30;z<=230;z+=38)if(Math.abs(z-28)>10&&Math.abs(z-78)>10&&Math.abs(z-128)>10&&Math.abs(z-178)>10&&Math.abs(z-228)>10)neonLamp(x,z,0xffd58a);

@@ -113,7 +113,7 @@ const npcs=[],npcColors=[0x9b684f,0x416c9b,0x76518e,0x4f8b68,0xb18a42,0x9c5550];
 for(let i=0;i<26;i++){
  const rig=person(npcColors[i%npcColors.length]);const angle=i*2.4;
  rig.mesh.position.set(Math.cos(angle)*(16+i%5*3),0,-60+(i%8)*10);scene.add(rig.mesh);
- npcs.push({rig,origin:rig.mesh.position.clone(),phase:Math.random()*6,speed:.4+Math.random()*.5,kind:i%6===0?'sit':'walk',hp:100,attackCd:0,stun:0,ang:angle});
+ npcs.push({rig,origin:rig.mesh.position.clone(),phase:Math.random()*6,speed:.4+Math.random()*.5,kind:i%6===0?'sit':'walk',hp:100,attackCd:0,stun:0,attackAnim:0,ang:angle});
 }
 
 // Vehicles point along their local +X axis. Their rotation is aligned to the road.
@@ -200,11 +200,12 @@ function updatePolice(dt){
 }
 function updateNPCs(dt,t){
  for(const n of npcs){
-  const p=n.rig.mesh,dist=p.position.distanceTo(player.position);n.attackCd=Math.max(0,n.attackCd-dt);n.stun=Math.max(0,n.stun-dt);
+  const p=n.rig.mesh,dist=p.position.distanceTo(player.position);n.attackCd=Math.max(0,n.attackCd-dt);n.stun=Math.max(0,n.stun-dt);n.attackAnim=Math.max(0,n.attackAnim-dt);
   let action='idle',moving=false;
-  if(n.stun>0){action='guard'}
+  if(n.attackAnim>0){action='punch'}
+  else if(n.stun>0){action='guard'}
   else if(dist<3.1&&n.attackCd<=0&&health>0&&!currentCar){
-   n.attackCd=1.7;n.stun=.45;health=Math.max(0,health-(playerAction==='dodge'?0:7));action='punch';updateUI();
+   n.attackCd=1.7;n.stun=.45;n.attackAnim=.32;health=Math.max(0,health-(playerAction==='dodge'?0:7));action='punch';updateUI();
    const away=p.position.clone().sub(player.position).normalize();p.position.addScaledVector(away,1.0);
   }else if(dist<10&&!currentCar){const d=player.position.clone().sub(p.position);d.y=0;d.normalize();p.position.addScaledVector(d,dt*1.5);p.rotation.y=Math.atan2(d.x,d.z);action='walk';moving=true}
   else if(n.kind==='sit'){action='idle'}

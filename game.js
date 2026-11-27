@@ -89,7 +89,7 @@ function building(x,z,w,d,height,color,label){
   for(const xx of [-w*.34,-w*.17,w*.17,w*.34])localBox(g,xx,2.5,d/2+.25,.55,5,.55,M.white);
   localBox(g,0,5,d/2+.2,w+.5,.65,.6,mat(0xd2ad5e));localBox(g,0,5.75,d/2+.24,w*.62,.35,.3,mat(0x2d4b5a));localBox(g,0,1.2,d/2+.8,w*.42,.2,1.3,M.white);
  }else if(label==='MARKET'){
-  localBox(g,0,4,d/2+.2,w+.2,.5,.7,M.green);localBox(g,0,4.5,d/2+.2,w+.2,.16,.7,M.red);localBox(g,0,5.25,d/2+.22,w*.55,.75,.18,mat(0xf2dfaa));localBox(g,0,5.25,d/2+.34,w*.42,.12,.08,M.green);localBox(g,0,1.9,d/2+.28,w*.7,2.7,.16,M.glass);
+  localBox(g,0,4,d/2+.2,w+.2,.65,.7,mat(0x0876c9));localBox(g,0,4.5,d/2+.2,w+.2,.18,.72,mat(0x101820));localBox(g,0,5.25,d/2+.22,w*.55,.75,.18,mat(0xf2dfaa));localBox(g,0,5.25,d/2+.34,w*.42,.13,.08,mat(0x0876c9));localBox(g,0,1.9,d/2+.28,w*.7,2.7,.16,M.glass);
   for(const xx of [-w/2+1,w/2-1])localBox(g,xx,2.2,d/2+.45,.25,4,.25,M.red);
  }else if(label==='VILLA'){
   const roof=localBox(g,0,height+.55,0,w+1,.45,d+1,mat(0x95583e));roof.rotation.z=.035;
@@ -377,7 +377,7 @@ function makeCar(x,z,color,driving=false,rotation=0,police=false,model=null){
   const hub=new THREE.Mesh(new THREE.CylinderGeometry(modelType==='ferrari'?.235:.2,modelType==='ferrari'?.235:.2,.26,16),M.chrome);hub.rotation.x=Math.PI/2;hub.position.copy(w.position);g.add(hub);
   if(modelType==='ferrari')for(let spoke=0;spoke<5;spoke++){const a=spoke*Math.PI*2/5;const bar=new THREE.Mesh(new THREE.BoxGeometry(.36,.045,.035),M.chrome);bar.position.set(xx+Math.cos(a)*.13,.48+Math.sin(a)*.13,zz*1.13);bar.rotation.z=a;g.add(bar)}
  }
- if(police){const bar=new THREE.Mesh(new THREE.BoxGeometry(1.1,.18,.45),M.red);bar.position.set(-.1,2.35,0);g.add(bar);const b2=new THREE.Mesh(new THREE.BoxGeometry(.45,.2,.45),M.blue);b2.position.set(.25,2.36,0);g.add(b2)}
+ if(police){const pc=document.createElement('canvas');pc.width=512;pc.height=96;const pq=pc.getContext('2d');pq.fillStyle='#071b36';pq.fillRect(0,0,512,96);pq.fillStyle='#ffffff';pq.font='900 58px Arial';pq.textAlign='center';pq.fillText('VICE POLICE',256,68);const policeText=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(pc)}));policeText.scale.set(2.7,.5,1);policeText.position.set(-.1,1.35,1.14);g.add(policeText);const bar=new THREE.Mesh(new THREE.BoxGeometry(1.1,.18,.45),M.red);bar.position.set(-.1,2.35,0);g.add(bar);const b2=new THREE.Mesh(new THREE.BoxGeometry(.45,.2,.45),M.blue);b2.position.set(.25,2.36,0);g.add(b2)}
  g.position.set(x,0,z);g.rotation.y=rotation;scene.add(g);
  const car={mesh:g,driving,speed:driving?5+Math.random()*3:0,rotation,police,model:modelType,name:carNames[modelType]||'Araç',fuel:100,condition:100,hitCooldown:0,outOfFuelNotified:false,wheels:wheelMeshes};cars.push(car);return car;
 }

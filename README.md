@@ -29,3 +29,12 @@ Bu, ilk oynanabilir temel sürümdür. Görevler, gerçek NPC rutinleri, polis y
 - Araçlarda yakıt ve hasar göstergesi; B ile benzin istasyonunda yakıt doldurma.
 - V ile garaj yakınında aracı kaydetme/geri alma; P ile yeterli para varsa villa satın alma.
 - Yeni tuşlar: B yakıt, V garaj, P villa satın alma, E bina/araç etkileşimi.
+
+
+## Yeni açık dünya sistemleri
+- Genişletilmiş harita: şehir merkezi, liman, havalimanı ve yeni trafik yolları.
+- NPC'ler saldırıya tepki verir; yakındaki siviller panikle kaçabilir, doğrudan saldırılmadıkça oyuncuya saldırmaz.
+- Aranma seviyesine göre polis yedekleri ve takip; yüksek seviyede helikopter.
+- Otel, banka, market, villa, liman, garaj ve havalimanı binalarında E ile iç mekâna girip çıkma.
+- Araçlarda yakıt ve hasar; B ile istasyonda yakıt doldurma.
+- V ile garaj yakınında aracı kaydetme/geri alma; P ile yeterli paran varsa villayı satın alma.

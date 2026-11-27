@@ -211,9 +211,9 @@ function updatePolice(dt){
 if(wanted>0){spawnPolice();updateExtraPolice(dt,clock.elapsedTime)}
 for(const c of cars.filter(c=>c.police)){
 const dx=player.position.x-c.mesh.position.x,dz=player.position.z-c.mesh.position.z;
-const desired=Math.atan2(dz,dx);let diff=Math.atan2(Math.sin(desired-c.mesh.rotation.y),Math.cos(desired-c.mesh.rotation.y));
+const desired=Math.atan2(-dz,dx);let diff=Math.atan2(Math.sin(desired-c.mesh.rotation.y),Math.cos(desired-c.mesh.rotation.y));
 c.mesh.rotation.y+=THREE.MathUtils.clamp(diff,-dt*1.7,dt*1.7);const dist=Math.hypot(dx,dz);
-if(dist>6){c.mesh.position.x+=Math.cos(c.mesh.rotation.y)*dt*9;c.mesh.position.z+=Math.sin(c.mesh.rotation.y)*dt*9}
+if(dist>6){c.mesh.position.x+=Math.cos(c.mesh.rotation.y)*dt*9;c.mesh.position.z-=Math.sin(c.mesh.rotation.y)*dt*9}
 if(dist<3.5&&Math.random()<dt*.7&&!dead&&!currentCar&&playerAction!=='dodge'&&!guarding){health=Math.max(0,health-4);updateUI()}
 }
 }
@@ -281,13 +281,23 @@ function updateDayNight(t){const phase=(t/180)%(Math.PI*2),h=Math.sin(phase),day
 sun.position.set(Math.cos(phase)*90,Math.max(-15,h*100),Math.sin(phase)*60);sun.intensity=.12+day*2.9;
 scene.background.copy(nightSky).lerp(daySky,day);scene.fog.color.copy(nightFog).lerp(dayFog,day);scene.fog.near=day?115:45;scene.fog.far=day?360:190;
 for(const l of streetLights)l.intensity=(1-day)*2.1;}
+const miniMap=document.createElement('canvas');miniMap.width=180;miniMap.height=180;miniMap.id='mini-map';
+miniMap.style.cssText='position:fixed;left:18px;bottom:48px;width:150px;height:150px;border:2px solid #e8d79a;border-radius:50%;background:#142b36cc;z-index:5;pointer-events:none';document.body.appendChild(miniMap);
+const miniCtx=miniMap.getContext('2d');
+function drawMiniMap(){const c=miniCtx;c.clearRect(0,0,180,180);c.fillStyle='#153c48';c.fillRect(0,0,180,180);
+c.fillStyle='#a7a99b';c.fillRect(0,0,180,180);c.fillStyle='#303941';c.fillRect(0,55,180,12);c.fillRect(0,105,180,12);c.fillRect(48,0,12,180);c.fillRect(112,0,12,180);
+c.strokeStyle='#f4e8c5';c.setLineDash([6,5]);c.lineWidth=1;c.beginPath();c.moveTo(0,61);c.lineTo(180,61);c.moveTo(0,111);c.lineTo(180,111);c.moveTo(54,0);c.lineTo(54,180);c.moveTo(118,0);c.lineTo(118,180);c.stroke();c.setLineDash([]);
+const px=90+(player.position.x/260)*180,py=90+(player.position.z/260)*180;c.fillStyle='#f8e16a';c.beginPath();c.arc(px,py,5,0,Math.PI*2);c.fill();
+for(const p of footPolice){const x=90+(p.rig.mesh.position.x/260)*180,y=90+(p.rig.mesh.position.z/260)*180;c.fillStyle='#ff554d';c.beginPath();c.arc(x,y,3.5,0,Math.PI*2);c.fill()}
+for(const p of cars.filter(x=>x.police)){const x=90+(p.mesh.position.x/260)*180,y=90+(p.mesh.position.z/260)*180;c.fillStyle='#ff554d';c.fillRect(x-3,y-3,6,6)}
+c.strokeStyle='#e8d79a';c.lineWidth=2;c.beginPath();c.arc(90,90,88,0,Math.PI*2);c.stroke();}
 function animate(){
  requestAnimationFrame(animate);
  const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;
  attackCooldown=Math.max(0,attackCooldown-dt);dodgeCooldown=Math.max(0,dodgeCooldown-dt);
  if(actionTimer>0){actionTimer-=dt;if(actionTimer<=0)playerAction='idle'}
  if(health<=0&&!dead){dead=true;const d=document.createElement('div');d.id='death-screen';d.style.cssText='position:fixed;inset:0;z-index:30;background:#05080dcc;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font:900 38px Arial;letter-spacing:4px;text-align:center';d.innerHTML='<div>ÖLDÜN</div><div style="font:600 15px Arial;letter-spacing:1px;margin-top:18px">R tuşuna basarak hastanede yeniden doğ</div>';document.body.appendChild(d)}
- movePlayer(dt);updateNPCs(dt,t);updatePolice(dt);updateDayNight(t);
+ movePlayer(dt);updateNPCs(dt,t);updatePolice(dt);updateDayNight(t);drawMiniMap();
  for(const c of cars){if(c.driving&&!c.police){
   c.mesh.position.x+=Math.cos(c.rotation)*c.speed*dt;
   c.mesh.position.z-=Math.sin(c.rotation)*c.speed*dt;

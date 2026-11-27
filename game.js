@@ -30,9 +30,22 @@ const M={
  skin:mat(0xc98e68),dark:mat(0x202a33),red:mat(0xc84d43),green:mat(0x4c9871),
  tire:mat(0x111315,.95),chrome:mat(0x9da9ac,.25,.8),police:mat(0xe9edf0,.4),black:mat(0x111b25,.5)
 };
+function safeBoxGeometry(sx,sy,sz,source='box'){
+ const raw=[sx,sy,sz];
+ const invalid=raw.some(v=>!Number.isFinite(v));
+ if(invalid)console.error('[GTA 7] Geçersiz BoxGeometry ölçüsü düzeltildi:',source,raw);
+ const safe=raw.map(v=>Number.isFinite(v)?v:1);
+ return new THREE.BoxGeometry(safe[0],safe[1],safe[2]);
+}
+function safePosition(x,y,z,source='box'){
+ const raw=[x,y,z];
+ const invalid=raw.some(v=>!Number.isFinite(v));
+ if(invalid)console.error('[GTA 7] Geçersiz nesne konumu düzeltildi:',source,raw);
+ return raw.map(v=>Number.isFinite(v)?v:0);
+}
 function box(x,y,z,sx,sy,sz,material,shadow=true){
- const o=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);
- o.position.set(x,y,z);o.castShadow=shadow;o.receiveShadow=true;scene.add(o);return o;
+ const o=new THREE.Mesh(safeBoxGeometry(sx,sy,sz,'box()'),material);
+ o.position.set(...safePosition(x,y,z,'box()'));o.castShadow=shadow;o.receiveShadow=true;scene.add(o);return o;
 }
 function ground(x,z,sx,sz,material){return box(x,-.25,z,sx,.5,sz,material,false)}
 ground(0,0,420,420,M.grass);
@@ -55,7 +68,7 @@ roadHorizontal(28);roadHorizontal(78);roadHorizontal(128);roadVertical(-40);road
 
 // Hospital spawn landmark
 const hospital=new THREE.Group();scene.add(hospital);hospital.position.set(0,0,5);
-function localBox(parent,x,y,z,sx,sy,sz,material){const o=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
+function localBox(parent,x,y,z,sx,sy,sz,material){const o=new THREE.Mesh(safeBoxGeometry(sx,sy,sz,'localBox()'),material);o.position.set(...safePosition(x,y,z,'localBox()'));o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}
 localBox(hospital,0,5,0,24,10,17,M.white);localBox(hospital,0,10.2,0,24,.5,17,M.blue);
 localBox(hospital,0,6,8.7,7,5,.4,M.glass);localBox(hospital,0,11,8.9,1.2,2,.5,M.red);localBox(hospital,0,11,8.9,4,.35,.5,M.white);
 for(let i=-1;i<=1;i++)localBox(hospital,i*6,3,8.8,3,5,.5,M.glass);

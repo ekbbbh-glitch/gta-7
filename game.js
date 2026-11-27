@@ -445,7 +445,7 @@ function movePlayer(dt){
  if(insideBuilding){player.position.x=THREE.MathUtils.clamp(player.position.x,insideBuilding.interior.position.x-7.5,insideBuilding.interior.position.x+7.5);player.position.z=THREE.MathUtils.clamp(player.position.z,insideBuilding.interior.position.z-5.5,insideBuilding.interior.position.z+5.5)}else{player.position.x=THREE.MathUtils.clamp(player.position.x,-350,350);player.position.z=THREE.MathUtils.clamp(player.position.z,-350,350)}
 }
 addEventListener('keydown',e=>{
- keys[e.code]=true;if(e.repeat)return;
+ keys[e.code]=true;if(e.repeat)return;if(e.code==='Escape'&&mapOpen){toggleMap(false);return}
  if(e.code==='Digit8')switchCharacter();
  if(e.code==='Digit9'){story=!story;toast(story?'Hikâye modu':'Serbest dolaşım');updateUI()}
  if(e.code==='KeyE')useCar();
@@ -458,7 +458,7 @@ addEventListener('keydown',e=>{
  if(e.code==='KeyQ')dodge();
  if(e.code==='KeyC'){cameraMode=cameraMode==='third'?'first':'third';toast(cameraMode==='first'?'Birinci şahıs kamera':'Üçüncü şahıs kamera')}
  if(e.code==='Space'&&!currentCar&&!currentJetSki&&Math.abs(player.position.y-getWorldFloor(player.position.x,player.position.z))<.08)jumpVelocity=7.5;
- if(e.code==='KeyM'&&!dead){money+=100;updateUI()}
+ if(e.code==='KeyM'&&!dead){toggleMap()}
  if(e.code==='KeyR'&&dead){dead=false;health=100;wanted=0;wantedTimer=0;insideBuilding=null;player.position.set(0,0,19);player.rotation.set(0,0,0);currentCar=null;for(const c of cars.filter(x=>x.police)){scene.remove(c.mesh);cars.splice(cars.indexOf(c),1)}for(const p of footPolice)scene.remove(p.rig.mesh);footPolice.length=0;if(policeHeli){scene.remove(policeHeli.mesh);policeHeli=null;heliRotor=null;heliTailRotor=null}document.querySelector('#death-screen')?.remove();updateUI()}
 });
 addEventListener('keyup',e=>{keys[e.code]=false});
@@ -486,6 +486,41 @@ function updateDayNight(t){const phase=(t/180)%(Math.PI*2),h=Math.sin(phase),day
 sun.position.set(Math.cos(phase)*90,Math.max(-15,h*100),Math.sin(phase)*60);sun.intensity=.12+day*2.9;
 scene.background.copy(nightSky).lerp(daySky,day);scene.fog.color.copy(nightFog).lerp(dayFog,day);scene.fog.near=insideBuilding?65:(day?145:55);scene.fog.far=insideBuilding?110:(day?560:300);
 for(const l of streetLights)l.intensity=(1-day)*2.1;}
+let mapOpen=false,destination=null,routePoints=[],routeMesh=null;
+const mapPanel=document.createElement('div');mapPanel.id='world-map-panel';mapPanel.style.cssText='display:none;position:fixed;inset:4vh 4vw;z-index:40;background:#08151fee;border:2px solid #d8c06b;border-radius:14px;padding:14px;color:#fff;font:700 13px Inter,Arial;box-shadow:0 20px 70px #000b';
+mapPanel.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><b style="color:#ffd66d;font-size:20px">VICE CITY · HARİTA</b><span>M: Kapat · Haritaya tıkla: hedef seç</span><button id="map-close" style="background:#a43b49;color:white;border:0;border-radius:7px;padding:8px 14px;font-weight:800">KAPAT ✕</button></div><canvas id="world-map" width="900" height="720" style="width:100%;height:calc(100% - 48px);display:block;background:#173c48;border-radius:8px;cursor:crosshair"></canvas>';
+document.body.appendChild(mapPanel);
+const worldMap=document.querySelector('#world-map'),worldMapCtx=worldMap.getContext('2d');
+function worldToMap(x,z){return {x:(x+360)/720*900,y:(z+360)/720*720}}
+function mapToWorld(x,y){return {x:x/900*720-360,z:y/720*720-360}}
+function nearestRoadPoint(p){const hz=[28,78,128,178,228],vx=[-40,48,150,220];let best={x:p.x,z:hz[0]},d=Infinity;for(const z of hz){const q={x:p.x,z},dd=Math.abs(p.z-z);if(dd<d){d=dd;best=q}}for(const x of vx){const q={x,z:p.z},dd=Math.abs(p.x-x);if(dd<d){d=dd;best=q}}return best}
+function setDestination(x,z){
+ destination={x:THREE.MathUtils.clamp(x,-350,350),z:THREE.MathUtils.clamp(z,-350,350)};
+ const a=nearestRoadPoint(player.position),b=nearestRoadPoint(destination),vx=[-40,48,150,220].sort((u,v)=>(Math.abs(u-a.x)+Math.abs(u-b.x))-(Math.abs(v-a.x)+Math.abs(v-b.x)))[0];
+ routePoints=[new THREE.Vector3(player.position.x,.35,player.position.z),new THREE.Vector3(a.x,.35,a.z),new THREE.Vector3(vx,.35,a.z),new THREE.Vector3(vx,.35,b.z),new THREE.Vector3(b.x,.35,b.z),new THREE.Vector3(destination.x,.35,destination.z)];
+ if(routeMesh){scene.remove(routeMesh);routeMesh.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
+ routeMesh=new THREE.Group();for(let i=0;i<routePoints.length-1;i++){const curve=new THREE.LineCurve3(routePoints[i],routePoints[i+1]);const tube=new THREE.Mesh(new THREE.TubeGeometry(curve,12,.2,6,false),new THREE.MeshBasicMaterial({color:0xb34cff,depthTest:false}));tube.renderOrder=20;routeMesh.add(tube)}scene.add(routeMesh);
+ drawWorldMap();toast('Mor rota oluşturuldu · hedefe doğru ilerle');
+}
+function toggleMap(force){mapOpen=force===undefined?!mapOpen:force;mapPanel.style.display=mapOpen?'block':'none';if(mapOpen){document.exitPointerLock?.();drawWorldMap()}}
+document.querySelector('#map-close').addEventListener('click',()=>toggleMap(false));
+worldMap.addEventListener('click',e=>{const r=worldMap.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*900,y=(e.clientY-r.top)/r.height*720,p=mapToWorld(x,y);setDestination(p.x,p.z)});
+function drawWorldMap(){
+ const c=worldMapCtx;c.clearRect(0,0,900,720);c.fillStyle='#176078';c.fillRect(0,0,900,720);c.fillStyle='#4e8c59';c.fillRect(0,0,900,720);
+ c.fillStyle='#188ca5';c.fillRect(0,0,900,180);c.fillStyle='#e5cf9c';c.fillRect(0,165,900,30);
+ c.strokeStyle='#303941';c.lineWidth=18;
+ for(const z of [28,78,128,178,228]){const p=worldToMap(0,z);c.beginPath();c.moveTo(0,p.y);c.lineTo(900,p.y);c.stroke()}
+ for(const x of [-40,48,150,220]){const p=worldToMap(x,0);c.beginPath();c.moveTo(p.x,0);c.lineTo(p.x,720);c.stroke()}
+ const bridge=worldToMap(-225,-187);c.strokeStyle='#b8b8b2';c.lineWidth=20;c.beginPath();c.moveTo(bridge.x,worldToMap(-225,-286).y);c.lineTo(bridge.x,worldToMap(-225,-88).y);c.stroke();
+ c.fillStyle='#f1d7a0';c.font='bold 13px Arial';c.fillText('KÖPRÜ',bridge.x+14,worldToMap(-225,-200).y);
+ c.font='bold 12px Arial';
+ for(const b of cityBuildings){const p=worldToMap(b.x,b.z);c.fillStyle=b.label==='BANK'?'#ffe16b':b.label==='MARKET'?'#8df0b0':'#e8e8df';c.fillRect(p.x-5,p.y-5,10,10);if(['BANK','MARKET','HOTEL','PORT','AIRPORT','GARAGE'].includes(b.label))c.fillText(b.label,p.x+8,p.y-7)}
+ const sea=worldToMap(-180,-170);c.fillStyle='#d2f4ff';c.fillText('DENİZ / MARİNA',sea.x,sea.y);
+ if(routePoints.length>1){c.strokeStyle='#c45bff';c.lineWidth=7;c.lineJoin='round';c.beginPath();routePoints.forEach((p,i)=>{const q=worldToMap(p.x,p.z);i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y)});c.stroke()}
+ if(destination){const p=worldToMap(destination.x,destination.z);c.fillStyle='#d75cff';c.beginPath();c.arc(p.x,p.y,10,0,Math.PI*2);c.fill();c.fillStyle='#fff';c.fillText('HEDEF',p.x+12,p.y-10)}
+ const me=worldToMap(player.position.x,player.position.z);c.fillStyle='#fff36a';c.beginPath();c.arc(me.x,me.y,8,0,Math.PI*2);c.fill();c.strokeStyle='#16232b';c.lineWidth=3;c.stroke();
+}
+
 const miniMap=document.createElement('canvas');miniMap.width=180;miniMap.height=180;miniMap.id='mini-map';
 miniMap.style.cssText='position:fixed;left:18px;bottom:48px;width:150px;height:150px;border:2px solid #e8d79a;border-radius:50%;background:#142b36cc;z-index:5;pointer-events:none';document.body.appendChild(miniMap);
 const miniCtx=miniMap.getContext('2d');
@@ -506,9 +541,9 @@ function animate(){
  if(actionTimer>0){actionTimer-=dt;if(actionTimer<=0)playerAction='idle'}
  if(health<=0&&!dead){dead=true;const d=document.createElement('div');d.id='death-screen';d.style.cssText='position:fixed;inset:0;z-index:30;background:#05080dcc;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font:900 38px Arial;letter-spacing:4px;text-align:center';d.innerHTML='<div>ÖLDÜN</div><div style="font:600 15px Arial;letter-spacing:1px;margin-top:18px">R tuşuna basarak hastanede yeniden doğ</div>';document.body.appendChild(d)}
  if(wanted>0&&wantedTimer>0){wantedTimer-=dt;if(wantedTimer<=0){wanted=Math.max(0,wanted-1);wantedTimer=wanted?18:0;updateUI()}}
- updateWaterWaves(clock.elapsedTime);movePlayer(dt);updateNPCs(dt,t);updatePolice(dt);updateDayNight(t);drawMiniMap();
- if(currentCar){const v=document.querySelector('#vehicleStats');if(v)v.textContent=`BENZİN ${Math.round(currentCar.fuel)}% · HASAR ${100-Math.round(currentCar.condition)}%`;}
- for(const c of cars){if(c.driving&&!c.police){
+ updateWaterWaves(clock.elapsedTime);movePlayer(dt);updateNPCs(dt,t);updatePolice(dt);updateDayNight(t);drawMiniMap();if(destination&&Math.hypot(player.position.x-destination.x,player.position.z-destination.z)<8){destination=null;routePoints=[];if(routeMesh){scene.remove(routeMesh);routeMesh=null}toast('Hedefe ulaştın!')}if(mapOpen)drawWorldMap();
+ if(currentCar){const v=document.querySelector('#vehicleStats');if(v)v.textContent=`BENZİN ${Math.round(currentCar.fuel)}% · HASAR ${100-Math.round(currentCar.condition)}%`;for(const w of currentCar.wheels||[])if(w.front)w.pivot.rotation.y=THREE.MathUtils.damp(w.pivot.rotation.y,currentCar.steer||0,8,dt)}
+ for(const c of cars){const night=sun.intensity<1.1;for(const l of c.headlightLights||[])l.intensity=night?2.6:0;for(const l of c.tailLights||[])l.intensity=night?0.35:0;if(c.driving&&!c.police){
   c.mesh.position.x+=Math.cos(c.rotation)*c.speed*dt;
   c.mesh.position.z-=Math.sin(c.rotation)*c.speed*dt;
   if(Math.abs(c.mesh.position.x)>365)c.mesh.position.x=-Math.sign(c.mesh.position.x)*365;

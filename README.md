@@ -38,3 +38,12 @@ Bu, ilk oynanabilir temel sürümdür. Görevler, gerçek NPC rutinleri, polis y
 - Otel, banka, market, villa, liman, garaj ve havalimanı binalarında E ile iç mekâna girip çıkma.
 - Araçlarda yakıt ve hasar; B ile istasyonda yakıt doldurma.
 - V ile garaj yakınında aracı kaydetme/geri alma; P ile yeterli paran varsa villayı satın alma.
+
+
+## Son eklenen özellikler
+- Genişletilmiş 720×720 şehir alanı ve yeni ada bölgesi.
+- Deniz yüzeyinde animasyonlu dalgalar, deniz köprüsü ve sürülebilir jetskiler.
+- Farklı araç gövdeleri: Citroën tarzı hatchback, sedan, SUV, spor coupe ve Lamborghini tarzı süper spor.
+- Bina türüne göre değişen dış cephe ve iç mekân tasarımları.
+- 42 yaya NPC, geliştirilmiş yüz ve kıyafet ayrıntıları.
+- C: birinci / üçüncü şahıs kamera; E: araç, jetski veya bina etkileşimi.

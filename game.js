@@ -401,7 +401,7 @@ for(let i=0;i<3;i++){const hull=new THREE.Mesh(new THREE.BoxGeometry(8,1.1,3),ma
 
 let currentCar=null,health=100,money=2500,wanted=0,story=false,missionStep=0,dead=false;let activeJob=null;
 let creditCard=false,creditDebt=0;const creditLimit=5000;let audioContext=null;
-const inventory={Yiyecek:0,İçecek:0,Protein:0};let bodyFat=0,muscle=0,heightGrowth=1,homeRecord=null;
+const inventory={Yiyecek:0,İçecek:0,Protein:0},homePantry={Yiyecek:0,İçecek:0,Protein:0};let bodyFat=0,muscle=0,heightGrowth=1,homeRecord=null;
 let wantedTimer=0,insideBuilding=null,garageCar=null,cameraMode='third';
 let playerAction='idle',actionTimer=0,attackCooldown=0,dodgeCooldown=0,guarding=false,jumpVelocity=0;
 const keys={};let yaw=0,pitch=.18,clock=new THREE.Clock(),toastTimer;
@@ -436,7 +436,8 @@ function shopOrBankAction(choice=null){
  else{playSound('error');toast(creditCard?'Kart limiti yetersiz':'Yetersiz nakit · Bankadan kart çıkar');return}
  inventory[item.name]=(inventory[item.name]||0)+1;playSound('cash');toast(item.name+' satın alındı · '+inventory[item.name]+' adet');updateUI();
 }
-function eatAtHome(){if(!homeRecord||!homeRecord.owned||player.position.distanceTo(homeRecord.door)>22){toast('Yemek için kendi evinin yakınına git');return}if(inventory.Yiyecek>0){inventory.Yiyecek--;bodyFat=Math.min(1,bodyFat+.035);health=Math.min(100,health+7);toast('Yemek yedin · Göbek yavaşça büyüyor')}else if(inventory.Protein>0){inventory.Protein--;muscle=Math.min(1,muscle+.025);toast('Protein yedin · Kas gelişimine destek')}else if(inventory.İçecek>0){inventory.İçecek--;toast('İçecek içtin')}else toast('Evde yiyecek yok · BİM’den al');playerRig.mesh.scale.set(1+bodyFat*.12,heightGrowth,1+bodyFat*.12);playerRig.torso.scale.set(1+bodyFat*.2+muscle*.12,1,1+bodyFat*.2+muscle*.12);updateUI();}
+function deliverGroceries(){if(!homeRecord||!homeRecord.owned||player.position.distanceTo(homeRecord.door)>22){toast('Poşetleri kendi evine götür');return}let count=0;for(const k of Object.keys(inventory)){homePantry[k]+=inventory[k];count+=inventory[k];inventory[k]=0}toast(count?'BİM alışverişi eve bırakıldı':'Teslim edilecek poşet yok')}
+function eatAtHome(){if(!homeRecord||!homeRecord.owned||player.position.distanceTo(homeRecord.door)>22){toast('Yemek için kendi evinin yakınına git');return}if(homePantry.Yiyecek>0){homePantry.Yiyecek--;bodyFat=Math.min(1,bodyFat+.035);health=Math.min(100,health+7);toast('Yemek yedin · Göbek yavaşça büyüyor')}else if(homePantry.Protein>0){homePantry.Protein--;muscle=Math.min(1,muscle+.025);toast('Protein yedin · Kas gelişimine destek')}else if(homePantry.İçecek>0){homePantry.İçecek--;toast('İçecek içtin')}else toast('Evde yiyecek yok · BİM’den al');playerRig.mesh.scale.set(1+bodyFat*.12,heightGrowth,1+bodyFat*.12);playerRig.torso.scale.set(1+bodyFat*.2+muscle*.12,1,1+bodyFat*.2+muscle*.12);const bs=document.querySelector('#bodyStats');if(bs)bs.textContent='GÖBEK '+Math.round(bodyFat*100)+'% · KAS '+Math.round(muscle*100)+'% · BOY '+Math.round(heightGrowth*100)+'%';updateUI();}
 function startJob(){if(activeJob){toast('Önce mevcut görevi tamamla');return}const jobs=[{name:'LİMAN KARGOSU',x:-150,z:-111,reward:650},{name:'HAVALİMANI TESLİMATI',x:170,z:112,reward:850},{name:'ŞEHİR KURYELİĞİ',x:94,z:-4,reward:500}];const j=jobs[Math.floor(Math.random()*jobs.length)];activeJob=j;setDestination(j.x,j.z);toast(j.name+' · Mor rotayı takip et · Ödül $'+j.reward)}
 function buyProperty(){const b=nearestBuilding();if(!b){toast('Satın almak için mülk kapısına yaklaş');return}if(b.label!=='HOUSE'&&b.label!=='VILLA'&&b.label!=='HOTEL'){toast('Bu bina satılık değil');return}const price=b.label==='VILLA'?18000:b.label==='HOTEL'?32000:6500;if(b.owned){toast('Bu mülk zaten senin');return}if(money<price){toast('Fiyat $'+price+' · Paran yetmiyor');return}money-=price;b.owned=true;toast('Mülk satın alındı!');updateUI()}
 function switchCharacter(){characterIndex=(characterIndex+1)%colors.length;playerRig.torso.material=mat(colors[characterIndex]);toast('Karakter '+(characterIndex+1));updateUI()}
@@ -579,13 +580,13 @@ addEventListener('keydown',e=>{
  keys[e.code]=true;if(e.repeat)return;if(e.code==='Escape'&&mapOpen){toggleMap(false);return}
  if(e.code==='Digit8')switchCharacter();if(!insideBuilding&&e.code==='Digit1')selectWeapon('akm');if(!insideBuilding&&e.code==='Digit2')selectWeapon('pistol');if(!insideBuilding&&e.code==='Digit3')selectWeapon('none');if(e.code==='KeyR'&&!dead&&weaponMode!=='none')reloadWeapon();
  if(e.code==='Digit9'){story=!story;toast(story?'Hikâye modu':'Serbest dolaşım');updateUI()}
- if(e.code==='KeyE')useCar();if(e.code==='KeyY')eatAtHome();if(e.code==='KeyJ')startJob();if(e.code==='KeyP'&&!dead)buyProperty();
+ if(e.code==='KeyE')useCar();if(e.code==='KeyY')eatAtHome();if(e.code==='KeyH')deliverGroceries();if(e.code==='KeyJ')startJob();if(e.code==='KeyP'&&!dead)buyProperty();
   if(e.code==='KeyT')shopOrBankAction();
   if(insideBuilding?.label==='MARKET'&&['Digit1','Digit2','Digit3'].includes(e.code))shopOrBankAction(e.code);
  if(e.code==='KeyB')refuel();if(e.code==='KeyV')garageAction();
  if(e.code==='KeyP'&&!dead){const b=nearestBuilding();if(b&&b.label==='VILLA'){if(b.owned)toast('Bu ev zaten senin');else if(money>=8000){money-=8000;b.owned=true;toast('Villa satın alındı!');updateUI()}else toast('Villa için $8000 gerekli')}}
  if(e.code==='KeyX'&&!currentCar&&!currentJetSki&&!insideBuilding&&!dead&&player.position.distanceTo(workoutSpot)<28){
- const actions=['pullup','dip','muscleup'];const labels=['BARFİKS','DİPS','MUSCLE UP'];const action=actions[workoutIndex%3];workoutIndex++;player.position.x=workoutSpot.x;player.position.z=workoutSpot.z+4;player.rotation.y=Math.PI;startAction(action,4.2);toast(labels[(workoutIndex-1)%3]+' animasyonu başladı');
+ const actions=['pullup','dip','muscleup'];const labels=['BARFİKS','DİPS','MUSCLE UP'];const action=actions[workoutIndex%3];workoutIndex++;player.position.x=workoutSpot.x;player.position.z=workoutSpot.z+4;player.rotation.y=Math.PI;startAction(action,4.2);muscle=Math.min(1,muscle+.012);heightGrowth=Math.min(1.12,heightGrowth+.0005);playerRig.mesh.scale.set(1+bodyFat*.12,heightGrowth,1+bodyFat*.12);playerRig.torso.scale.set(1+bodyFat*.2+muscle*.12,1,1+bodyFat*.2+muscle*.12);const bs=document.querySelector('#bodyStats');if(bs)bs.textContent='GÖBEK '+Math.round(bodyFat*100)+'% · KAS '+Math.round(muscle*100)+'% · BOY '+Math.round(heightGrowth*100)+'%';toast(labels[(workoutIndex-1)%3]+' animasyonu başladı');
  }
  if(e.code==='KeyF')hitNPC(false);
  if(e.code==='KeyG')hitNPC(true);

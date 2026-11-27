@@ -507,7 +507,7 @@ document.querySelector('#map-close').addEventListener('click',()=>toggleMap(fals
 worldMap.addEventListener('click',e=>{const r=worldMap.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*900,y=(e.clientY-r.top)/r.height*720,p=mapToWorld(x,y);setDestination(p.x,p.z)});
 function drawWorldMap(){
  const c=worldMapCtx;c.clearRect(0,0,900,720);c.fillStyle='#176078';c.fillRect(0,0,900,720);c.fillStyle='#4e8c59';c.fillRect(0,0,900,720);
- c.fillStyle='#188ca5';c.fillRect(0,0,900,180);c.fillStyle='#e5cf9c';c.fillRect(0,165,900,30);
+ c.fillStyle='#188ca5';c.fillRect(0,92,900,180);c.fillStyle='#e5cf9c';c.fillRect(0,251,900,42);
  c.strokeStyle='#303941';c.lineWidth=18;
  for(const z of [28,78,128,178,228]){const p=worldToMap(0,z);c.beginPath();c.moveTo(0,p.y);c.lineTo(900,p.y);c.stroke()}
  for(const x of [-40,48,150,220]){const p=worldToMap(x,0);c.beginPath();c.moveTo(p.x,0);c.lineTo(p.x,720);c.stroke()}

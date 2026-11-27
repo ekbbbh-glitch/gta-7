@@ -1,21 +1,5 @@
 <!doctype html>
-<html lang="tr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-  <meta name="theme-color" content="#07131e">
-  <title>GTA 7 — Vice City</title>
-  <link rel="stylesheet" href="./style.css">
-</head>
-<body>
-  <div id="game"></div>
-  <div id="loading"><div class="loader"></div><b>GTA 7</b><span>VICE CITY YÜKLENİYOR...</span></div>
-  <header class="topbar"><div class="brand">GTA <strong>7</strong><small>VICE CITY</small></div><div class="stats"><span>♥ <b id="health">100</b></span><span>＄ <b id="money">2500</b></span><span>★ <b id="wanted">☆☆☆☆☆</b></span></div></header>
-  <div id="mission" class="mission"><small>HİKÂYE MODU</small><b id="missionText">Hastaneden ayrıl ve Vice City'yi keşfet.</b></div>
-  <div id="toast"></div>
-  <div id="crosshair">+</div>
-  <div class="help"><b>KONTROLLER</b><span>WASD · Hareket / sürüş</span><span>SHIFT · Koş</span><span>SPACE · Zıpla</span><span>E · Araç / jetski / bina</span><span>Sol tık / F · Yumruk</span><span>G · Tekme</span><span>Q · Sıyrıl / kaçın</span><span>C · İç kamera / dış kamera</span><span>Sağ tık · Savunma</span><span>8 · Karakter değiştir</span><span>Ş · Ayarlar / gündüz-gece</span><span>1 · AKM / 2 · 9MM / 3 · Yumruk</span><span>R · Şarjör doldur · Sol tık: Ateş et</span><span>E · Hastane / market / gym / evlere gir</span><span>9 · Hikâye modu</span><span>M · Büyük harita / GPS hedef seç</span><span>Fare · Kamera</span><span>Suya yakın E · Jetskiye bin</span><span>B · Benzin doldur</span><span>V · Garaj</span><span>P · Ev / villa / otel satın al</span><span>J · Para kazandıran görev al</span><span>Y · Evde yemek ye</span><span>E · Binaya gir / çık</span><span>T · Bankada kredi kartı / borç öde</span><span>Markette T · Ürünleri göster</span><span>1 / 2 / 3 · Marketten alışveriş</span></div>
-  <div class="bottom"><span id="character">KARAKTER 1</span><span id="mode">SERBEST DOLAŞIM</span><span id="areaLabel">VICE CITY</span><span id="vehicleHint">E: Araca bin / binaya gir</span><span id="vehicleStats">ARAÇ: YAYA</span><span id="bodyStats">GÖBEK 0% · KAS 0% · BOY 100%</span><span id="weapon-stats">SİLAH: YUMRUK</span></div>
-  <script type="module" src="./game.js"></script>
-</body>
-</html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#101827"><title>PALMIRA — Solara City</title><link rel="stylesheet" href="./style.css"><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script></head><body>
+<div id="game"></div><div id="intro"><div class="intro-kicker">THE SUNSHINE STATE</div><h1>PALMIRA</h1><p>SOLARA CITY · 27° NORTH</p><button id="start">ŞEHRİ KEŞFET</button><small>WASD · HAREKET &nbsp; MOUSE · KAMERA &nbsp; F · ARAÇ</small></div>
+<div id="hud"><header><div class="logo">PALMIRA<span> / SOLARA CITY</span></div><div class="stats"><b id="cash">$ 2,500</b><b id="clock">19:42</b><b id="stars">☆☆☆☆☆☆</b></div></header><div class="mission"><small>AKTİF GÖREV</small><b id="objective">Şehri keşfet. Mücevher mağazasına git.</b></div><div class="bottom"><div class="vitals"><span>HEALTH</span><div><i id="healthbar"></i></div><strong id="health">100</strong></div><div id="vehicle">ON FOOT</div><div id="region">OCEAN DRIVE</div></div><div id="toast"></div><div id="phone" class="panel"><b>PALM SOCIAL</b><button id="phoneClose">×</button><div id="feed"></div></div><div id="pause" class="panel"><b>PAUSED</b><p>WASD Move · Shift Sprint · Space Jump<br>F Enter / Exit Vehicle · Tab Switch Character<br>P Phone · R Radio · Esc Pause</p><label>GRAPHICS <select id="quality"><option>High</option><option>Medium</option><option>Low</option></select></label><button id="resume">RESUME</button></div><div id="crosshair">+</div></div>
+<script type="module" src="./src/main.js"></script></body></html>

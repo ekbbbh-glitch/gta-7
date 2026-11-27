@@ -399,7 +399,7 @@ for(let i=0;i<6;i++)makeCar(157.6,180-i*60,carColors[(i+2)%6],true,-Math.PI/2);
 for(let i=0;i<4;i++){const x=-70+i*42;const hull=new THREE.Mesh(new THREE.BoxGeometry(9,1.2,3),mat(0xf1eee1));hull.position.set(x,.4,-103);scene.add(hull);const cabin=new THREE.Mesh(new THREE.BoxGeometry(3,2,2),M.white);cabin.position.set(x,.1,-103);scene.add(cabin)}
 for(let i=0;i<3;i++){const hull=new THREE.Mesh(new THREE.BoxGeometry(8,1.1,3),mat(0xf1eee1));hull.position.set(-168+i*16,.45,-117);scene.add(hull);const cabin=new THREE.Mesh(new THREE.BoxGeometry(2.6,1.8,2),M.white);cabin.position.set(-168+i*16,1.2,-117);scene.add(cabin)}
 
-let currentCar=null,health=100,money=2500,wanted=0,story=false,missionStep=0,dead=false;
+let currentCar=null,health=100,money=2500,wanted=0,story=false,missionStep=0,dead=false;let activeJob=null;
 let creditCard=false,creditDebt=0;const creditLimit=5000;let audioContext=null;
 const inventory={Yiyecek:0,İçecek:0,Protein:0};let bodyFat=0,muscle=0,heightGrowth=1,homeRecord=null;
 let wantedTimer=0,insideBuilding=null,garageCar=null,cameraMode='third';
@@ -437,6 +437,8 @@ function shopOrBankAction(choice=null){
  inventory[item.name]=(inventory[item.name]||0)+1;playSound('cash');toast(item.name+' satın alındı · '+inventory[item.name]+' adet');updateUI();
 }
 function eatAtHome(){if(!homeRecord||!homeRecord.owned||player.position.distanceTo(homeRecord.door)>22){toast('Yemek için kendi evinin yakınına git');return}if(inventory.Yiyecek>0){inventory.Yiyecek--;bodyFat=Math.min(1,bodyFat+.035);health=Math.min(100,health+7);toast('Yemek yedin · Göbek yavaşça büyüyor')}else if(inventory.Protein>0){inventory.Protein--;muscle=Math.min(1,muscle+.025);toast('Protein yedin · Kas gelişimine destek')}else if(inventory.İçecek>0){inventory.İçecek--;toast('İçecek içtin')}else toast('Evde yiyecek yok · BİM’den al');playerRig.mesh.scale.set(1+bodyFat*.12,heightGrowth,1+bodyFat*.12);playerRig.torso.scale.set(1+bodyFat*.2+muscle*.12,1,1+bodyFat*.2+muscle*.12);updateUI();}
+function startJob(){if(activeJob){toast('Önce mevcut görevi tamamla');return}const jobs=[{name:'LİMAN KARGOSU',x:-150,z:-111,reward:650},{name:'HAVALİMANI TESLİMATI',x:170,z:112,reward:850},{name:'ŞEHİR KURYELİĞİ',x:94,z:-4,reward:500}];const j=jobs[Math.floor(Math.random()*jobs.length)];activeJob=j;setDestination(j.x,j.z);toast(j.name+' · Mor rotayı takip et · Ödül $'+j.reward)}
+function buyProperty(){const b=nearestBuilding();if(!b){toast('Satın almak için mülk kapısına yaklaş');return}if(b.label!=='HOUSE'&&b.label!=='VILLA'&&b.label!=='HOTEL'){toast('Bu bina satılık değil');return}const price=b.label==='VILLA'?18000:b.label==='HOTEL'?32000:6500;if(b.owned){toast('Bu mülk zaten senin');return}if(money<price){toast('Fiyat $'+price+' · Paran yetmiyor');return}money-=price;b.owned=true;toast('Mülk satın alındı!');updateUI()}
 function switchCharacter(){characterIndex=(characterIndex+1)%colors.length;playerRig.torso.material=mat(colors[characterIndex]);toast('Karakter '+(characterIndex+1));updateUI()}
 function nearestCar(){let best=null,dist=18;const flatDistance=c=>Math.hypot(player.position.x-c.mesh.position.x,player.position.z-c.mesh.position.z);for(const c of cars){if(c.police||c.driving||c===currentCar)continue;const d=flatDistance(c);if(d<dist){best=c;dist=d}}if(best)return best;dist=7.5;for(const c of cars){if(c.police||c===currentCar)continue;const d=flatDistance(c);if(d<dist){best=c;dist=d}}return best}
 const jetSkis=[];// OFFROAD PARK: two forked tracks, muddy ground, puddles, pine trees and jumps.
@@ -577,7 +579,7 @@ addEventListener('keydown',e=>{
  keys[e.code]=true;if(e.repeat)return;if(e.code==='Escape'&&mapOpen){toggleMap(false);return}
  if(e.code==='Digit8')switchCharacter();if(!insideBuilding&&e.code==='Digit1')selectWeapon('akm');if(!insideBuilding&&e.code==='Digit2')selectWeapon('pistol');if(!insideBuilding&&e.code==='Digit3')selectWeapon('none');if(e.code==='KeyR'&&!dead&&weaponMode!=='none')reloadWeapon();
  if(e.code==='Digit9'){story=!story;toast(story?'Hikâye modu':'Serbest dolaşım');updateUI()}
- if(e.code==='KeyE')useCar();if(e.code==='KeyY')eatAtHome();
+ if(e.code==='KeyE')useCar();if(e.code==='KeyY')eatAtHome();if(e.code==='KeyJ')startJob();if(e.code==='KeyP'&&!dead)buyProperty();
   if(e.code==='KeyT')shopOrBankAction();
   if(insideBuilding?.label==='MARKET'&&['Digit1','Digit2','Digit3'].includes(e.code))shopOrBankAction(e.code);
  if(e.code==='KeyB')refuel();if(e.code==='KeyV')garageAction();
